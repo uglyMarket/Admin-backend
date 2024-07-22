@@ -1,0 +1,51 @@
+### Java ###
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.kar
+*.hprof
+
+# Generated sources
+generated-sources/
+
+### Gradle ###
+.gradle
+build/
+!gradle-wrapper.jar
+
+### IntelliJ ###
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+### Spring ###
+# Spring Boot specific
+spring.log
+
+# IntelliJ IDEA
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# VS Code
+.vscode/
+
+# Log files
+*.log
+
+# Target directory
+target/
+
+### Windows ###
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+### Application Properties ###
+application.properties
