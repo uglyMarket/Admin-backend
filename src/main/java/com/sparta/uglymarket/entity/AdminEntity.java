@@ -1,59 +1,88 @@
 package com.sparta.uglymarket.entity;
 
-import com.sparta.uglymarket.dto.AdminRequest;
+import com.sparta.uglymarket.dto.AdminRegisterRequest;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 
 @Entity
 @Table(name = "admin")
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 public class AdminEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long adminId; // 관리자 ID
+    private Long adminId;
 
-    @Column(nullable = false, unique = true, length = 15)
-    private String farmName; // 농장 이름
-
-    @Column(nullable = false, length = 500)
-    private String introMessage; // 소개 메시지
+    @Column(nullable = false, unique = true)
+    private String phoneNumber;
 
     @Column(nullable = false)
-    private String profileImageUrl; // 프로필 사진 URL
+    private String password;
 
-    @Column(nullable = false, unique = true, length = 13)
-    private String phoneNumber; // 전화번호
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
 
-    @Column(nullable = false, length = 15)
-    private String leaderName; // 대표자 이름
-
-    @Column(nullable = false, length = 12)
-    private String businessId; // 사업자 등록번호
-
-    @Column(nullable = false, length = 10)
-    private String openingDate; // 개업일
+    @Column(nullable = false, unique = true)
+    private String farmName;
 
     @Column(nullable = false)
-    private Long minOrderAmount; // 최소 주문금액
+    private String introMessage;
 
     @Column(nullable = false)
-    private String password; // 비밀번호
+    private String profileImageUrl;
 
+    @Column(nullable = false)
+    private String leaderName;
 
-    public AdminEntity(AdminRequest adminRequest) {
-        this.farmName = adminRequest.getFarmName();
-        this.introMessage = adminRequest.getIntroMessage();
-        this.profileImageUrl = adminRequest.getProfileImageUrl();
-        this.phoneNumber = adminRequest.getPhoneNumber();
-        this.leaderName = adminRequest.getLeaderName();
-        this.businessId = adminRequest.getBusinessId();
-        this.openingDate = adminRequest.getOpeningDate();
-        this.minOrderAmount = adminRequest.getMinOrderAmount();
-        this.password = adminRequest.getPassword();
+    @Column(nullable = false)
+    private String businessId;
+
+    @Column(nullable = false)
+    private String openingDate;
+
+    @Column(nullable = false)
+    private Long minOrderAmount;
+
+    public AdminEntity(AdminRegisterRequest adminRegisterRequest) {
+        this.phoneNumber = adminRegisterRequest.getPhoneNumber();
+        this.password = adminRegisterRequest.getPassword();
+        this.role = Role.ROLE_ADMIN;
+        this.farmName = adminRegisterRequest.getFarmName();
+        this.introMessage = adminRegisterRequest.getIntroMessage();
+        this.profileImageUrl = adminRegisterRequest.getProfileImageUrl();
+        this.leaderName = adminRegisterRequest.getLeaderName();
+        this.businessId = adminRegisterRequest.getBusinessId();
+        this.openingDate = adminRegisterRequest.getOpeningDate();
+        this.minOrderAmount = adminRegisterRequest.getMinOrderAmount();
     }
 
+    // 엔티티 수정 메서드
+    public void update(AdminRegisterRequest adminRegisterRequest) {
+        this.phoneNumber = adminRegisterRequest.getPhoneNumber();
+        this.password = adminRegisterRequest.getPassword();
+        this.farmName = adminRegisterRequest.getFarmName();
+        this.introMessage = adminRegisterRequest.getIntroMessage();
+        this.profileImageUrl = adminRegisterRequest.getProfileImageUrl();
+        this.leaderName = adminRegisterRequest.getLeaderName();
+        this.businessId = adminRegisterRequest.getBusinessId();
+        this.openingDate = adminRegisterRequest.getOpeningDate();
+        this.minOrderAmount = adminRegisterRequest.getMinOrderAmount();
+    }
+//    public Role getRole() {
+//        return role;
+//    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    // 비밀번호 설정 메서드
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }
