@@ -1,8 +1,8 @@
 package com.sparta.uglymarket.service;
 
-import com.sparta.uglymarket.dto.AdminRegisterRequest;
-import com.sparta.uglymarket.dto.AdminRegisterResponse;
+import com.sparta.uglymarket.dto.*;
 import com.sparta.uglymarket.entity.AdminEntity;
+import com.sparta.uglymarket.entity.RefreshToken;
 import com.sparta.uglymarket.entity.Role;
 import com.sparta.uglymarket.exception.CustomException;
 import com.sparta.uglymarket.exception.ErrorMsg;
@@ -11,7 +11,12 @@ import com.sparta.uglymarket.repository.RefreshTokenRepository;
 import com.sparta.uglymarket.util.JwtUtil;
 import com.sparta.uglymarket.util.PasswordUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -35,5 +40,25 @@ public class AdminService {
         adminEntity.setRole(Role.ROLE_ADMIN);
         adminRepository.save(adminEntity);
         return new AdminRegisterResponse("회원가입 성공!", adminEntity.getRole().name());
+    }
+
+    // 로그인
+    public ResponseEntity<AdminLoginResponse> login(AdminLoginRequest requestDto) {
+        AdminEntity admin = adminRepository.findByPhoneNumber(requestDto.getPhoneNumber())
+                .orElseThrow(() -> new CustomException(ErrorMsg.PHONE_NUMBER_NOT_FOUND));
+
+        if (!passwordUtil.matches(requestDto.getPassword(), admin.getPassword())) {
+            throw new CustomException(ErrorMsg.INVALID_PASSWORD);
+        }
+
+        String token = jwtUtil.generateAccessToken(admin.getPhoneNumber());
+        String refreshToken = jwtUtil.generateRefreshToken(admin.getPhoneNumber());
+
+        AdminLoginResponse responseDto = new AdminLoginResponse("로그인 성공!");
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + token);
+        headers.add("Refresh-Token", "Bearer " + refreshToken);
+
+        return new ResponseEntity<>(responseDto, headers, HttpStatus.OK);
     }
 }
