@@ -78,4 +78,61 @@ class AdminServiceTest {
         CustomException exception = assertThrows(CustomException.class, () -> adminService.register(request));
         assertEquals(ErrorMsg.DUPLICATE_PHONE_NUMBER.getHttpStatus(), exception.getHttpStatus());
     }
+
+    @Test
+    void login() {
+        // given
+        AdminLoginRequest request = mock(AdminLoginRequest.class);
+        when(request.getPhoneNumber()).thenReturn("010-1234-5678");
+        when(request.getPassword()).thenReturn("password");
+
+        AdminEntity admin = mock(AdminEntity.class);
+        when(admin.getPhoneNumber()).thenReturn("010-1234-5678");
+        when(admin.getPassword()).thenReturn("encodedPassword");
+
+        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.of(admin));
+        when(passwordUtil.matches(anyString(), anyString())).thenReturn(true);
+        when(jwtUtil.generateAccessToken(anyString())).thenReturn("accessToken");
+        when(jwtUtil.generateRefreshToken(anyString())).thenReturn("refreshToken");
+
+        // when
+        ResponseEntity<AdminLoginResponse> response = adminService.login(request);
+
+        // then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("로그인 성공!", response.getBody().getMessage());
+        assertTrue(response.getHeaders().containsKey("Authorization"));
+        assertTrue(response.getHeaders().containsKey("Refresh-Token"));
+    }
+
+    @Test
+    void login_throwsException_whenPhoneNumberNotFound() {
+        // given
+        AdminLoginRequest request = mock(AdminLoginRequest.class);
+        when(request.getPhoneNumber()).thenReturn("010-1234-5678");
+        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.empty());
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, () -> adminService.login(request));
+        assertEquals(ErrorMsg.PHONE_NUMBER_NOT_FOUND.getHttpStatus(), exception.getHttpStatus());
+    }
+
+    @Test
+    void login_throwsException_whenPasswordInvalid() {
+        // given
+        AdminLoginRequest request = mock(AdminLoginRequest.class);
+        when(request.getPhoneNumber()).thenReturn("010-1234-5678");
+        when(request.getPassword()).thenReturn("password");
+
+        AdminEntity admin = mock(AdminEntity.class);
+        when(admin.getPhoneNumber()).thenReturn("010-1234-5678");
+        when(admin.getPassword()).thenReturn("encodedPassword");
+
+        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.of(admin));
+        when(passwordUtil.matches(anyString(), anyString())).thenReturn(false);
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, () -> adminService.login(request));
+        assertEquals(ErrorMsg.INVALID_PASSWORD.getHttpStatus(), exception.getHttpStatus());
+    }
 }
