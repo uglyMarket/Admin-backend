@@ -135,4 +135,57 @@ class AdminServiceTest {
         CustomException exception = assertThrows(CustomException.class, () -> adminService.login(request));
         assertEquals(ErrorMsg.INVALID_PASSWORD.getHttpStatus(), exception.getHttpStatus());
     }
+
+    @Test
+    void updateAdmin() {
+        // given
+        Long id = 1L;
+        AdminRegisterRequest request = mock(AdminRegisterRequest.class);
+        when(request.getPhoneNumber()).thenReturn("010-1234-5678");
+
+        AdminEntity admin = mock(AdminEntity.class);
+        when(admin.getPhoneNumber()).thenReturn("010-1234-5678");
+        when(admin.getRole()).thenReturn(Role.ROLE_ADMIN);
+
+        when(adminRepository.findById(eq(id))).thenReturn(Optional.of(admin));
+        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.empty());
+
+        // when
+        AdminUpdateResponse response = adminService.updateAdmin(id, request);
+
+        // then
+        assertEquals("회원 정보 수정 성공!", response.getMessage());
+        assertEquals(Role.ROLE_ADMIN.name(), response.getRole());
+        verify(adminRepository, times(1)).save(admin);
+    }
+
+    @Test
+    void updateAdmin_throwsException_whenAdminNotFound() {
+        // given
+        Long id = 1L;
+        AdminRegisterRequest request = mock(AdminRegisterRequest.class);
+        when(adminRepository.findById(eq(id))).thenReturn(Optional.empty());
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, () -> adminService.updateAdmin(id, request));
+        assertEquals(ErrorMsg.ADMIN_NOT_FOUND.getHttpStatus(), exception.getHttpStatus());
+    }
+
+    @Test
+    void updateAdmin_throwsException_whenPhoneNumberExists() {
+        // given
+        Long id = 1L;
+        AdminRegisterRequest request = mock(AdminRegisterRequest.class);
+        when(request.getPhoneNumber()).thenReturn("010-1234-5678");
+
+        AdminEntity admin = mock(AdminEntity.class);
+        when(admin.getPhoneNumber()).thenReturn("010-8765-4321");
+
+        when(adminRepository.findById(eq(id))).thenReturn(Optional.of(admin));
+        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.of(new AdminEntity()));
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, () -> adminService.updateAdmin(id, request));
+        assertEquals(ErrorMsg.DUPLICATE_PHONE_NUMBER.getHttpStatus(), exception.getHttpStatus());
+    }
 }
