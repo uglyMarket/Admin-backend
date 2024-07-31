@@ -1,266 +1,95 @@
-//package com.sparta.uglymarket.controller;
-//
-//import com.sparta.uglymarket.dto.AdminRegisterRequest;
-//import com.sparta.uglymarket.dto.AdminRegisterResponse;
-//import com.sparta.uglymarket.dto.AdminInfoResponse;
-//import com.sparta.uglymarket.dto.AdminUpdateRequest;
-//import com.sparta.uglymarket.dto.AdminUpdateResponse;
-//import com.sparta.uglymarket.service.AdminService;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.mockito.InjectMocks;
-//import org.mockito.Mock;
-//import org.mockito.MockitoAnnotations;
-//
-//import static org.junit.jupiter.api.Assertions.assertEquals;
-//import static org.mockito.ArgumentMatchers.any;
-//import static org.mockito.Mockito.when;
-//
-//public class AdminControllerTest {
-//
-//    @Mock
-//    private AdminService adminService;
-//
-//    @InjectMocks
-//    private AdminController adminController;
-//
-//    @BeforeEach
-//    public void setUp() {
-//        MockitoAnnotations.openMocks(this);
-//    }
-//
-//    @Test
-//    public void testRegisterSuccess() {
-//        AdminRegisterRequest adminRequest = new AdminRegisterRequest();
-//        adminRequest.setFarmName("MyFarm");
-//        adminRequest.setIntroMessage("Welcome to MyFarm");
-//        adminRequest.setProfileImageUrl("http://example.com/profile.jpg");
-//        adminRequest.setPhoneNumber("01012345678");
-//        adminRequest.setLeaderName("John Doe");
-//        adminRequest.setBusinessId("1234567890");
-//        adminRequest.setOpeningDate("2024-01-01");
-//        adminRequest.setMinOrderAmount(1000L);
-//        adminRequest.setPassword("securepassword");
-//
-//        when(adminService.register(any(AdminRegisterRequest.class))).thenReturn(new AdminRegisterResponse("success", "회원가입이 성공적으로 완료되었습니다."));
-//
-//        AdminRegisterResponse response = adminController.register(adminRequest);
-//
-//        assertEquals("success", response.getStatus());
-//        assertEquals("회원가입이 성공적으로 완료되었습니다.", response.getMessage());
-//    }
-//
-//    @Test
-//    public void testRegisterFailureAllFieldsMissing() {
-//        AdminRegisterRequest adminRequest = new AdminRegisterRequest();
-//
-//        AdminRegisterResponse response = adminController.register(adminRequest);
-//
-//        assertEquals("error", response.getStatus());
-//        assertEquals("모든 항목을 입력해야 합니다.", response.getMessage());
-//    }
-//
-//    @Test
-//    public void testRegisterFailurePhoneNumberExists() {
-//        AdminRegisterRequest adminRequest = new AdminRegisterRequest();
-//        adminRequest.setFarmName("MyFarm");
-//        adminRequest.setIntroMessage("Welcome to MyFarm");
-//        adminRequest.setProfileImageUrl("http://example.com/profile.jpg");
-//        adminRequest.setPhoneNumber("01012345678");
-//        adminRequest.setLeaderName("John Doe");
-//        adminRequest.setBusinessId("1234567890");
-//        adminRequest.setOpeningDate("2024-01-01");
-//        adminRequest.setMinOrderAmount(1000L);
-//        adminRequest.setPassword("securepassword");
-//
-//        when(adminService.register(any(AdminRegisterRequest.class))).thenReturn(new AdminRegisterResponse("error", "전화번호가 이미 존재합니다."));
-//
-//        AdminRegisterResponse response = adminController.register(adminRequest);
-//
-//        assertEquals("error", response.getStatus());
-//        assertEquals("전화번호가 이미 존재합니다.", response.getMessage());
-//    }
-//
-//    @Test
-//    public void testRegisterFailureFarmNameExists() {
-//        AdminRegisterRequest adminRequest = new AdminRegisterRequest();
-//        adminRequest.setFarmName("MyFarm");
-//        adminRequest.setIntroMessage("Welcome to MyFarm");
-//        adminRequest.setProfileImageUrl("http://example.com/profile.jpg");
-//        adminRequest.setPhoneNumber("01012345678");
-//        adminRequest.setLeaderName("John Doe");
-//        adminRequest.setBusinessId("1234567890");
-//        adminRequest.setOpeningDate("2024-01-01");
-//        adminRequest.setMinOrderAmount(1000L);
-//        adminRequest.setPassword("securepassword");
-//
-//        when(adminService.register(any(AdminRegisterRequest.class))).thenReturn(new AdminRegisterResponse("error", "농장 이름이 이미 존재합니다."));
-//
-//        AdminRegisterResponse response = adminController.register(adminRequest);
-//
-//        assertEquals("error", response.getStatus());
-//        assertEquals("농장 이름이 이미 존재합니다.", response.getMessage());
-//    }
-//
-//    @Test
-//    public void testRegisterFailureMissingFarmName() {
-//        AdminRegisterRequest adminRequest = new AdminRegisterRequest();
-//        adminRequest.setIntroMessage("Welcome to MyFarm");
-//        adminRequest.setProfileImageUrl("http://example.com/profile.jpg");
-//        adminRequest.setPhoneNumber("01012345678");
-//        adminRequest.setLeaderName("John Doe");
-//        adminRequest.setBusinessId("1234567890");
-//        adminRequest.setOpeningDate("2024-01-01");
-//        adminRequest.setMinOrderAmount(1000L);
-//        adminRequest.setPassword("securepassword");
-//
-//        AdminRegisterResponse response = adminController.register(adminRequest);
-//
-//        assertEquals("error", response.getStatus());
-//        assertEquals("모든 항목을 입력해야 합니다.", response.getMessage());
-//    }
-//
-//    @Test
-//    public void testRegisterFailureMissingIntroMessage() {
-//        AdminRegisterRequest adminRequest = new AdminRegisterRequest();
-//        adminRequest.setFarmName("MyFarm");
-//        adminRequest.setProfileImageUrl("http://example.com/profile.jpg");
-//        adminRequest.setPhoneNumber("01012345678");
-//        adminRequest.setLeaderName("John Doe");
-//        adminRequest.setBusinessId("1234567890");
-//        adminRequest.setOpeningDate("2024-01-01");
-//        adminRequest.setMinOrderAmount(1000L);
-//        adminRequest.setPassword("securepassword");
-//
-//        AdminRegisterResponse response = adminController.register(adminRequest);
-//
-//        assertEquals("error", response.getStatus());
-//        assertEquals("모든 항목을 입력해야 합니다.", response.getMessage());
-//    }
-//
-//    @Test
-//    public void testRegisterFailureMissingProfileImageUrl() {
-//        AdminRegisterRequest adminRequest = new AdminRegisterRequest();
-//        adminRequest.setFarmName("MyFarm");
-//        adminRequest.setIntroMessage("Welcome to MyFarm");
-//        adminRequest.setPhoneNumber("01012345678");
-//        adminRequest.setLeaderName("John Doe");
-//        adminRequest.setBusinessId("1234567890");
-//        adminRequest.setOpeningDate("2024-01-01");
-//        adminRequest.setMinOrderAmount(1000L);
-//        adminRequest.setPassword("securepassword");
-//
-//        AdminRegisterResponse response = adminController.register(adminRequest);
-//
-//        assertEquals("error", response.getStatus());
-//        assertEquals("모든 항목을 입력해야 합니다.", response.getMessage());
-//    }
-//
-//    @Test
-//    public void testRegisterFailureMissingPhoneNumber() {
-//        AdminRegisterRequest adminRequest = new AdminRegisterRequest();
-//        adminRequest.setFarmName("MyFarm");
-//        adminRequest.setIntroMessage("Welcome to MyFarm");
-//        adminRequest.setProfileImageUrl("http://example.com/profile.jpg");
-//        adminRequest.setLeaderName("John Doe");
-//        adminRequest.setBusinessId("1234567890");
-//        adminRequest.setOpeningDate("2024-01-01");
-//        adminRequest.setMinOrderAmount(1000L);
-//        adminRequest.setPassword("securepassword");
-//
-//        AdminRegisterResponse response = adminController.register(adminRequest);
-//
-//        assertEquals("error", response.getStatus());
-//        assertEquals("모든 항목을 입력해야 합니다.", response.getMessage());
-//    }
-//
-//    @Test
-//    public void testRegisterFailureMissingLeaderName() {
-//        AdminRegisterRequest adminRequest = new AdminRegisterRequest();
-//        adminRequest.setFarmName("MyFarm");
-//        adminRequest.setIntroMessage("Welcome to MyFarm");
-//        adminRequest.setProfileImageUrl("http://example.com/profile.jpg");
-//        adminRequest.setPhoneNumber("01012345678");
-//        adminRequest.setBusinessId("1234567890");
-//        adminRequest.setOpeningDate("2024-01-01");
-//        adminRequest.setMinOrderAmount(1000L);
-//        adminRequest.setPassword("securepassword");
-//
-//        AdminRegisterResponse response = adminController.register(adminRequest);
-//
-//        assertEquals("error", response.getStatus());
-//        assertEquals("모든 항목을 입력해야 합니다.", response.getMessage());
-//    }
-//
-//    @Test
-//    public void testRegisterFailureMissingBusinessId() {
-//        AdminRegisterRequest adminRequest = new AdminRegisterRequest();
-//        adminRequest.setFarmName("MyFarm");
-//        adminRequest.setIntroMessage("Welcome to MyFarm");
-//        adminRequest.setProfileImageUrl("http://example.com/profile.jpg");
-//        adminRequest.setPhoneNumber("01012345678");
-//        adminRequest.setLeaderName("John Doe");
-//        adminRequest.setOpeningDate("2024-01-01");
-//        adminRequest.setMinOrderAmount(1000L);
-//        adminRequest.setPassword("securepassword");
-//
-//        AdminRegisterResponse response = adminController.register(adminRequest);
-//
-//        assertEquals("error", response.getStatus());
-//        assertEquals("모든 항목을 입력해야 합니다.", response.getMessage());
-//    }
-//
-//    @Test
-//    public void testRegisterFailureMissingOpeningDate() {
-//        AdminRegisterRequest adminRequest = new AdminRegisterRequest();
-//        adminRequest.setFarmName("MyFarm");
-//        adminRequest.setIntroMessage("Welcome to MyFarm");
-//        adminRequest.setProfileImageUrl("http://example.com/profile.jpg");
-//        adminRequest.setPhoneNumber("01012345678");
-//        adminRequest.setLeaderName("John Doe");
-//        adminRequest.setBusinessId("1234567890");
-//        adminRequest.setMinOrderAmount(1000L);
-//        adminRequest.setPassword("securepassword");
-//
-//        AdminRegisterResponse response = adminController.register(adminRequest);
-//
-//        assertEquals("error", response.getStatus());
-//        assertEquals("모든 항목을 입력해야 합니다.", response.getMessage());
-//    }
-//
-//    @Test
-//    public void testRegisterFailureMissingMinOrderAmount() {
-//        AdminRegisterRequest adminRequest = new AdminRegisterRequest();
-//        adminRequest.setFarmName("MyFarm");
-//        adminRequest.setIntroMessage("Welcome to MyFarm");
-//        adminRequest.setProfileImageUrl("http://example.com/profile.jpg");
-//        adminRequest.setPhoneNumber("01012345678");
-//        adminRequest.setLeaderName("John Doe");
-//        adminRequest.setBusinessId("1234567890");
-//        adminRequest.setOpeningDate("2024-01-01");
-//        adminRequest.setPassword("securepassword");
-//
-//        AdminRegisterResponse response = adminController.register(adminRequest);
-//
-//        assertEquals("error", response.getStatus());
-//        assertEquals("모든 항목을 입력해야 합니다.", response.getMessage());
-//    }
-//
-//    @Test
-//    public void testRegisterFailureMissingPassword() {
-//        AdminRegisterRequest adminRequest = new AdminRegisterRequest();
-//        adminRequest.setFarmName("MyFarm");
-//        adminRequest.setIntroMessage("Welcome to MyFarm");
-//        adminRequest.setProfileImageUrl("http://example.com/profile.jpg");
-//        adminRequest.setPhoneNumber("01012345678");
-//        adminRequest.setLeaderName("John Doe");
-//        adminRequest.setBusinessId("1234567890");
-//        adminRequest.setOpeningDate("2024-01-01");
-//        adminRequest.setMinOrderAmount(1000L);
-//
-//        AdminRegisterResponse response = adminController.register(adminRequest);
-//
-//        assertEquals("error", response.getStatus());
-//        assertEquals("모든 항목을 입력해야 합니다.", response.getMessage());
-//    }
-//}
+package com.sparta.uglymarket.controller;
+
+import com.sparta.uglymarket.dto.*;
+import com.sparta.uglymarket.service.AdminService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+class AdminControllerTest {
+
+    @InjectMocks
+    private AdminController adminController;
+
+    @Mock
+    private AdminService adminService;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    void register() {
+        // given
+        AdminRegisterRequest request = mock(AdminRegisterRequest.class);
+        AdminRegisterResponse response = mock(AdminRegisterResponse.class);
+        when(adminService.register(any(AdminRegisterRequest.class))).thenReturn(response);
+
+        // when
+        ResponseEntity<AdminRegisterResponse> result = adminController.register(request);
+
+        // then
+        assertEquals(HttpStatus.CREATED, result.getStatusCode());
+        assertEquals(response, result.getBody());
+        verify(adminService, times(1)).register(request);
+    }
+
+    @Test
+    void login() {
+        // given
+        AdminLoginRequest request = mock(AdminLoginRequest.class);
+        AdminLoginResponse loginResponse = mock(AdminLoginResponse.class);
+        ResponseEntity<AdminLoginResponse> response = new ResponseEntity<>(loginResponse, HttpStatus.OK);
+        when(adminService.login(any(AdminLoginRequest.class))).thenReturn(response);
+
+        // when
+        ResponseEntity<AdminLoginResponse> result = adminController.login(request);
+
+        // then
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals(response.getBody(), result.getBody());
+        verify(adminService, times(1)).login(request);
+    }
+
+    @Test
+    void updateAdmin() {
+        // given
+        Long id = 1L;
+        AdminRegisterRequest request = mock(AdminRegisterRequest.class);
+        AdminUpdateResponse response = mock(AdminUpdateResponse.class);
+        when(adminService.updateAdmin(eq(id), any(AdminRegisterRequest.class))).thenReturn(response);
+
+        // when
+        ResponseEntity<AdminUpdateResponse> result = adminController.updateAdmin(id, request);
+
+        // then
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals(response, result.getBody());
+        verify(adminService, times(1)).updateAdmin(eq(id), eq(request));
+    }
+
+    @Test
+    void logout() {
+        // given
+        String token = "someToken";
+        LogoutResponse response = mock(LogoutResponse.class);
+        when(adminService.logout(eq(token))).thenReturn(response);
+
+        // when
+        ResponseEntity<LogoutResponse> result = adminController.logout(token);
+
+        // then
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals(response, result.getBody());
+        verify(adminService, times(1)).logout(eq(token));
+    }
+}
