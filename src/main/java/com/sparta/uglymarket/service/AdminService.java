@@ -76,4 +76,19 @@ public class AdminService {
         adminRepository.save(admin);
         return new AdminUpdateResponse("회원 정보 수정 성공!", admin.getRole().name());
     }
+
+    // 로그아웃
+    public LogoutResponse logout(String token) {
+        String phoneNumber = jwtUtil.getPhoneNumberFromToken(token);
+        adminRepository.findByPhoneNumber(phoneNumber)
+                .orElseThrow(() -> new CustomException(ErrorMsg.PHONE_NUMBER_NOT_FOUND));
+
+        jwtUtil.revokeToken(token);
+        List<RefreshToken> refreshTokens = refreshTokenRepository.findByPhoneNumber(phoneNumber);
+        refreshTokens.forEach(refreshToken -> {
+            jwtUtil.revokeToken(refreshToken.getToken());
+        });
+
+        return new LogoutResponse("로그아웃 성공!");
+    }
 }
