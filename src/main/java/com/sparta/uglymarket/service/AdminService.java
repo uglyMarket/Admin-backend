@@ -61,4 +61,19 @@ public class AdminService {
 
         return new ResponseEntity<>(responseDto, headers, HttpStatus.OK);
     }
+
+    // 회원 정보 수정
+    public AdminUpdateResponse updateAdmin(Long id, AdminRegisterRequest adminRequest) {
+        AdminEntity admin = adminRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorMsg.ADMIN_NOT_FOUND));
+
+        if (!admin.getPhoneNumber().equals(adminRequest.getPhoneNumber()) &&
+                adminRepository.findByPhoneNumber(adminRequest.getPhoneNumber()).isPresent()) {
+            throw new CustomException(ErrorMsg.DUPLICATE_PHONE_NUMBER);
+        }
+
+        admin.update(adminRequest);
+        adminRepository.save(admin);
+        return new AdminUpdateResponse("회원 정보 수정 성공!", admin.getRole().name());
+    }
 }
