@@ -130,4 +130,17 @@ class ProductServiceTest {
         CustomException exception = assertThrows(CustomException.class, () -> productService.getProductResponse(id));
         assertEquals(ErrorMsg.PRODUCT_NOT_FOUND.getHttpStatus(), exception.getHttpStatus());
     }
+
+    @Test
+    void deleteProduct() {
+        // given
+        Long id = 1L;
+
+        // when
+        ProductDeleteResponse response = productService.deleteProduct(id);
+
+        // then
+        assertEquals("상품이 성공적으로 삭제되었습니다.", response.getMessage());
+        verify(productRepository, times(1)).deleteById(eq(id));
+    }
 }
