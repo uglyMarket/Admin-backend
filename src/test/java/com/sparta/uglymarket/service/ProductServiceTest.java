@@ -81,4 +81,28 @@ class ProductServiceTest {
         CustomException exception = assertThrows(CustomException.class, () -> productService.updateProduct(id, request));
         assertEquals(ErrorMsg.PRODUCT_NOT_FOUND.getHttpStatus(), exception.getHttpStatus());
     }
+    @Test
+    void getProducts() {
+        // given
+        List<ProductEntity> products = new ArrayList<>();
+        products.add(mock(ProductEntity.class));
+        when(productRepository.findAll()).thenReturn(products);
+
+        // when
+        List<ProductsGetResponse> response = productService.getProducts();
+
+        // then
+        assertFalse(response.isEmpty());
+        verify(productRepository, times(1)).findAll();
+    }
+
+    @Test
+    void getProducts_throwsException_whenNoProductsFound() {
+        // given
+        when(productRepository.findAll()).thenReturn(new ArrayList<>());
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, () -> productService.getProducts());
+        assertEquals(ErrorMsg.PRODUCT_NOT_FOUND.getHttpStatus(), exception.getHttpStatus());
+    }
 }
