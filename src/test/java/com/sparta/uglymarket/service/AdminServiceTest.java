@@ -15,13 +15,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
 import java.util.Collections;
 import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -187,5 +184,34 @@ class AdminServiceTest {
         // when & then
         CustomException exception = assertThrows(CustomException.class, () -> adminService.updateAdmin(id, request));
         assertEquals(ErrorMsg.DUPLICATE_PHONE_NUMBER.getHttpStatus(), exception.getHttpStatus());
+    }
+
+    @Test
+    void logout() {
+        // given
+        String token = "someToken";
+        when(jwtUtil.getPhoneNumberFromToken(anyString())).thenReturn("010-1234-5678");
+        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.of(new AdminEntity()));
+        when(refreshTokenRepository.findByPhoneNumber(anyString())).thenReturn(Collections.singletonList(new RefreshToken()));
+
+        // when
+        LogoutResponse response = adminService.logout(token);
+
+        // then
+        assertEquals("로그아웃 성공!", response.getMessage());
+        verify(jwtUtil, times(1)).revokeToken(eq(token));
+        verify(jwtUtil, times(1)).revokeToken(anyString());
+    }
+
+    @Test
+    void logout_throwsException_whenPhoneNumberNotFound() {
+        // given
+        String token = "someToken";
+        when(jwtUtil.getPhoneNumberFromToken(anyString())).thenReturn("010-1234-5678");
+        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.empty());
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, () -> adminService.logout(token));
+        assertEquals(ErrorMsg.PHONE_NUMBER_NOT_FOUND.getHttpStatus(), exception.getHttpStatus());
     }
 }
