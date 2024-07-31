@@ -1,41 +1,93 @@
 package com.sparta.uglymarket.service;
 
-import com.sparta.uglymarket.dto.AdminRequest;
-import com.sparta.uglymarket.dto.AdminResponse;
+import com.sparta.uglymarket.dto.*;
 import com.sparta.uglymarket.entity.AdminEntity;
+import com.sparta.uglymarket.entity.RefreshToken;
+import com.sparta.uglymarket.entity.Role;
+import com.sparta.uglymarket.exception.CustomException;
+import com.sparta.uglymarket.exception.ErrorMsg;
 import com.sparta.uglymarket.repository.AdminRepository;
+import com.sparta.uglymarket.repository.RefreshTokenRepository;
+import com.sparta.uglymarket.util.JwtUtil;
+import com.sparta.uglymarket.util.PasswordUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
-
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class AdminService {
 
-    private final AdminRepository adminRepository; // AdminRepository 객체를 주입받습니다.
-    private final PasswordEncoder passwordEncoder; // PasswordEncoder 객체를 주입받습니다.
+    private final AdminRepository adminRepository;
+    private final JwtUtil jwtUtil;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final PasswordUtil passwordUtil;
 
-    public AdminResponse register(AdminRequest adminRequest) {
-        // 이미 해당 전화번호로 등록된 관리자가 있는지 확인합니다.                 isPresent() 존재하는지 안하는지 확인메서드
-        if (adminRepository.findByPhoneNumber(adminRequest.getPhoneNumber()).isPresent()) {
-            return new AdminResponse("error", "전화번호가 이미 존재합니다."); // 전화번호 중복 확인
+    // 회원가입
+    public AdminRegisterResponse register(AdminRegisterRequest adminRegisterRequest) {
+        if (adminRepository.findByPhoneNumber(adminRegisterRequest.getPhoneNumber()).isPresent()) {
+            throw new CustomException(ErrorMsg.DUPLICATE_PHONE_NUMBER);
         }
-        // 이미 해당 농장 이름으로 등록된 관리자가 있는지 확인합니다.
-        if (adminRepository.findByFarmName(adminRequest.getFarmName()).isPresent()) {
-            return new AdminResponse("error", "농장 이름이 이미 존재합니다."); // 농장 이름 중복 확인
-        }
-        // 비밀번호를 해싱하여 보안을 강화합니다.
-        String hashedPassword = passwordEncoder.encode(adminRequest.getPassword()); // 비밀번호 해싱
-        adminRequest.setPassword(hashedPassword); // 해싱된 비밀번호 설정
-        // AdminRequest를 AdminEntity로 변환하여 데이터베이스에 저장합니다.
-        AdminEntity adminEntity = new AdminEntity(adminRequest);
-        adminRepository.save(adminEntity); // 관리자 정보 저장
 
+        AdminEntity adminEntity = new AdminEntity(adminRegisterRequest);
+        String encodedPassword = passwordUtil.encodePassword(adminRegisterRequest.getPassword());
+        adminEntity.setPassword(encodedPassword);
 
-        return new AdminResponse("success", "회원가입이 성공적으로 완료되었습니다."); // 성공 메시지 반환
+        adminEntity.setRole(Role.ROLE_ADMIN);
+        adminRepository.save(adminEntity);
+        return new AdminRegisterResponse("회원가입 성공!", adminEntity.getRole().name());
     }
 
+    // 로그인
+    public ResponseEntity<AdminLoginResponse> login(AdminLoginRequest requestDto) {
+        AdminEntity admin = adminRepository.findByPhoneNumber(requestDto.getPhoneNumber())
+                .orElseThrow(() -> new CustomException(ErrorMsg.PHONE_NUMBER_NOT_FOUND));
+
+        if (!passwordUtil.matches(requestDto.getPassword(), admin.getPassword())) {
+            throw new CustomException(ErrorMsg.INVALID_PASSWORD);
+        }
+
+        String token = jwtUtil.generateAccessToken(admin.getPhoneNumber());
+        String refreshToken = jwtUtil.generateRefreshToken(admin.getPhoneNumber());
+
+        AdminLoginResponse responseDto = new AdminLoginResponse("로그인 성공!");
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + token);
+        headers.add("Refresh-Token", "Bearer " + refreshToken);
+
+        return new ResponseEntity<>(responseDto, headers, HttpStatus.OK);
+    }
+
+    // 회원 정보 수정
+    public AdminUpdateResponse updateAdmin(Long id, AdminRegisterRequest adminRequest) {
+        AdminEntity admin = adminRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorMsg.ADMIN_NOT_FOUND));
+
+        if (!admin.getPhoneNumber().equals(adminRequest.getPhoneNumber()) &&
+                adminRepository.findByPhoneNumber(adminRequest.getPhoneNumber()).isPresent()) {
+            throw new CustomException(ErrorMsg.DUPLICATE_PHONE_NUMBER);
+        }
+
+        admin.update(adminRequest);
+        adminRepository.save(admin);
+        return new AdminUpdateResponse("회원 정보 수정 성공!", admin.getRole().name());
+    }
+
+    // 로그아웃
+    public LogoutResponse logout(String token) {
+        String phoneNumber = jwtUtil.getPhoneNumberFromToken(token);
+        adminRepository.findByPhoneNumber(phoneNumber)
+                .orElseThrow(() -> new CustomException(ErrorMsg.PHONE_NUMBER_NOT_FOUND));
+
+        jwtUtil.revokeToken(token);
+        List<RefreshToken> refreshTokens = refreshTokenRepository.findByPhoneNumber(phoneNumber);
+        refreshTokens.forEach(refreshToken -> {
+            jwtUtil.revokeToken(refreshToken.getToken());
+        });
+
+        return new LogoutResponse("로그아웃 성공!");
+    }
 }
