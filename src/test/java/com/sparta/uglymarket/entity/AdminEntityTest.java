@@ -42,4 +42,51 @@ class AdminEntityTest {
         assertEquals(adminRegisterRequest.getMinOrderAmount(), adminEntity.getMinOrderAmount());
         assertEquals(Role.ROLE_ADMIN, adminEntity.getRole());
     }
+
+    @Test
+    void testUpdate() {
+        // given
+        AdminRegisterRequest updatedRequest = mock(AdminRegisterRequest.class);
+        when(updatedRequest.getPhoneNumber()).thenReturn("010-9876-5432");
+        when(updatedRequest.getPassword()).thenReturn("newpassword");
+        when(updatedRequest.getFarmName()).thenReturn("New Farm");
+        when(updatedRequest.getIntroMessage()).thenReturn("Welcome to New Farm");
+        when(updatedRequest.getProfileImageUrl()).thenReturn("http://example.com/newprofile.jpg");
+        when(updatedRequest.getLeaderName()).thenReturn("Jane Doe");
+        when(updatedRequest.getBusinessId()).thenReturn("0987654321");
+        when(updatedRequest.getOpeningDate()).thenReturn("2024-01-01");
+        when(updatedRequest.getMinOrderAmount()).thenReturn(20000L);
+
+        // when
+        adminEntity.update(updatedRequest);
+
+        // then
+        assertEquals(updatedRequest.getPhoneNumber(), adminEntity.getPhoneNumber());
+        assertEquals(updatedRequest.getPassword(), adminEntity.getPassword());
+        assertEquals(updatedRequest.getFarmName(), adminEntity.getFarmName());
+        assertEquals(updatedRequest.getIntroMessage(), adminEntity.getIntroMessage());
+        assertEquals(updatedRequest.getProfileImageUrl(), adminEntity.getProfileImageUrl());
+        assertEquals(updatedRequest.getLeaderName(), adminEntity.getLeaderName());
+        assertEquals(updatedRequest.getBusinessId(), adminEntity.getBusinessId());
+        assertEquals(updatedRequest.getOpeningDate(), adminEntity.getOpeningDate());
+        assertEquals(updatedRequest.getMinOrderAmount(), adminEntity.getMinOrderAmount());
+    }
+
+    @Test
+    void testSetRole() {
+        // when
+        adminEntity.setRole(Role.ROLE_ADMIN);
+
+        // then
+        assertEquals(Role.ROLE_ADMIN, adminEntity.getRole());
+    }
+
+    @Test
+    void testSetPassword() {
+        // when
+        adminEntity.setPassword("newpassword");
+
+        // then
+        assertEquals("newpassword", adminEntity.getPassword());
+    }
 }
