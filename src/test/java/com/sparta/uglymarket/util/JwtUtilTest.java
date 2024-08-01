@@ -1,5 +1,6 @@
 package com.sparta.uglymarket.util;
 
+import com.sparta.uglymarket.entity.RefreshToken;
 import com.sparta.uglymarket.repository.AdminRepository;
 import com.sparta.uglymarket.repository.RefreshTokenRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,7 +9,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class JwtUtilTest {
 
@@ -60,5 +64,20 @@ class JwtUtilTest {
         String token = jwtUtil.generateAccessToken(phoneNumber);
 
         assertTrue(jwtUtil.validateToken(token));
+    }
+
+    @Test
+    void testRevokeToken() {
+        String phoneNumber = "01012345678";
+        String token = jwtUtil.generateRefreshToken(phoneNumber);
+
+        RefreshToken refreshToken = mock(RefreshToken.class);
+        when(refreshTokenRepository.findByToken(token)).thenReturn(Optional.of(refreshToken));
+
+        jwtUtil.revokeToken(token);
+
+        verify(refreshToken, times(1)).expire();
+        verify(refreshToken, times(1)).revoke();
+        verify(refreshTokenRepository, times(1)).save(refreshToken);
     }
 }
