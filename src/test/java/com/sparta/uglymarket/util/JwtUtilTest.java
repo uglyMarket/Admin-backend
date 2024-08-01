@@ -1,5 +1,6 @@
 package com.sparta.uglymarket.util;
 
+import com.sparta.uglymarket.entity.AdminEntity;
 import com.sparta.uglymarket.entity.RefreshToken;
 import com.sparta.uglymarket.repository.AdminRepository;
 import com.sparta.uglymarket.repository.RefreshTokenRepository;
@@ -8,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.util.Optional;
 
@@ -79,5 +82,27 @@ class JwtUtilTest {
         verify(refreshToken, times(1)).expire();
         verify(refreshToken, times(1)).revoke();
         verify(refreshTokenRepository, times(1)).save(refreshToken);
+    }
+
+    @Test
+    void testRefreshToken() throws Exception {
+        String phoneNumber = "01012345678";
+        String refreshToken = jwtUtil.generateRefreshToken(phoneNumber);
+        AdminEntity adminEntity = mock(AdminEntity.class);
+        when(adminEntity.getPhoneNumber()).thenReturn(phoneNumber);
+
+        when(adminRepository.findByPhoneNumber(phoneNumber)).thenReturn(Optional.of(adminEntity));
+        when(refreshTokenRepository.findByToken(refreshToken)).thenReturn(Optional.of(mock(RefreshToken.class)));
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer " + refreshToken);
+
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        jwtUtil.refreshToken(request, response);
+
+        String newAccessToken = response.getHeader("Authorization").substring(7);
+        assertNotNull(newAccessToken);
+        assertEquals(phoneNumber, jwtUtil.getPhoneNumberFromToken(newAccessToken));
     }
 }
