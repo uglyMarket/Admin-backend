@@ -13,5 +13,4 @@ class UglyMarketApplicationTests {
     @Test
     void contextLoads() {
     }
-
 }
