@@ -8,8 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 class JwtUtilTest {
 
@@ -53,5 +52,13 @@ class JwtUtilTest {
 
         String extractedPhoneNumber = jwtUtil.getPhoneNumberFromToken(token);
         assertEquals(phoneNumber, extractedPhoneNumber);
+    }
+
+    @Test
+    void testValidateToken() {
+        String phoneNumber = "01012345678";
+        String token = jwtUtil.generateAccessToken(phoneNumber);
+
+        assertTrue(jwtUtil.validateToken(token));
     }
 }
