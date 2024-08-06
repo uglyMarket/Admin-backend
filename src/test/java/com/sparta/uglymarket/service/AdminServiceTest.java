@@ -137,7 +137,7 @@ class AdminServiceTest {
     void updateAdmin() {
         // given
         Long id = 1L;
-        AdminRegisterRequest request = mock(AdminRegisterRequest.class);
+        AdminUpdateRequest request = mock(AdminUpdateRequest.class);
         when(request.getPhoneNumber()).thenReturn("010-1234-5678");
 
         AdminEntity admin = mock(AdminEntity.class);
@@ -160,7 +160,7 @@ class AdminServiceTest {
     void updateAdmin_throwsException_whenAdminNotFound() {
         // given
         Long id = 1L;
-        AdminRegisterRequest request = mock(AdminRegisterRequest.class);
+        AdminUpdateRequest request = mock(AdminUpdateRequest.class);
         when(adminRepository.findById(eq(id))).thenReturn(Optional.empty());
 
         // when & then
@@ -172,7 +172,7 @@ class AdminServiceTest {
     void updateAdmin_throwsException_whenPhoneNumberExists() {
         // given
         Long id = 1L;
-        AdminRegisterRequest request = mock(AdminRegisterRequest.class);
+        AdminUpdateRequest request = mock(AdminUpdateRequest.class);
         when(request.getPhoneNumber()).thenReturn("010-1234-5678");
 
         AdminEntity admin = mock(AdminEntity.class);

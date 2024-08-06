@@ -1,6 +1,5 @@
 package com.sparta.uglymarket.dto;
 
-import com.sparta.uglymarket.entity.ProductEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

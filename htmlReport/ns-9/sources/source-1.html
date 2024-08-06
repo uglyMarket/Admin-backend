@@ -1,0 +1,300 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > JwtUtil</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.sparta.uglymarket.util</a>
+</div>
+
+<h1>Coverage Summary for Class: JwtUtil (com.sparta.uglymarket.util)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JwtUtil</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (8/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    66.7%
+  </span>
+  <span class="absValue">
+    (8/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    88.5%
+  </span>
+  <span class="absValue">
+    (46/52)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">JwtUtil$MockitoMock$QzVnEimH</td>
+  </tr>
+  <tr>
+    <td class="name">JwtUtil$MockitoMock$QzVnEimH$auxiliary$0bfaYY7e</td>
+  </tr>
+  <tr>
+    <td class="name">JwtUtil$MockitoMock$QzVnEimH$auxiliary$5qbQvyWn</td>
+  </tr>
+  <tr>
+    <td class="name">JwtUtil$MockitoMock$QzVnEimH$auxiliary$AbSZxd2O</td>
+  </tr>
+  <tr>
+    <td class="name">JwtUtil$MockitoMock$QzVnEimH$auxiliary$g8txNiH9</td>
+  </tr>
+  <tr>
+    <td class="name">JwtUtil$MockitoMock$QzVnEimH$auxiliary$LVnBDdsS</td>
+  </tr>
+  <tr>
+    <td class="name">JwtUtil$MockitoMock$QzVnEimH$auxiliary$u3NLDf3J</td>
+  </tr>
+  <tr>
+    <td class="name">JwtUtil$MockitoMock$QzVnEimH$auxiliary$w6aHESK5</td>
+  </tr>
+  <tr>
+    <td class="name">JwtUtil$MockitoMock$QzVnEimH$auxiliary$wtd7FF2O</td>
+  </tr>
+  <tr>
+    <td class="name">JwtUtil$MockitoMock$QzVnEimH$auxiliary$zt2Lnajf</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (8/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    66.7%
+  </span>
+  <span class="absValue">
+    (8/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    88.5%
+  </span>
+  <span class="absValue">
+    (46/52)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.sparta.uglymarket.util;
+&nbsp;
+&nbsp;import com.sparta.uglymarket.dto.TokenResponse;
+&nbsp;import com.sparta.uglymarket.entity.RefreshToken;
+&nbsp;import com.sparta.uglymarket.repository.RefreshTokenRepository;
+&nbsp;import com.sparta.uglymarket.entity.AdminEntity;
+&nbsp;import com.sparta.uglymarket.repository.AdminRepository;
+&nbsp;import com.sparta.uglymarket.exception.CustomException;
+&nbsp;import com.sparta.uglymarket.exception.ErrorMsg;
+&nbsp;import com.fasterxml.jackson.databind.ObjectMapper;
+&nbsp;import io.jsonwebtoken.*;
+&nbsp;import io.jsonwebtoken.security.Keys;
+&nbsp;import jakarta.annotation.PostConstruct;
+&nbsp;import jakarta.servlet.http.HttpServletRequest;
+&nbsp;import jakarta.servlet.http.HttpServletResponse;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.http.HttpHeaders;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;
+&nbsp;import java.io.IOException;
+&nbsp;import java.security.Key;
+&nbsp;import java.util.Date;
+&nbsp;
+&nbsp;@Component
+<b class="fc">&nbsp;@RequiredArgsConstructor</b>
+&nbsp;public class JwtUtil {
+&nbsp;
+&nbsp;    // JWT 서명을 위한 키
+&nbsp;    private Key key;
+&nbsp;    private final AdminRepository adminRepository;
+&nbsp;    private final RefreshTokenRepository refreshTokenRepository;
+&nbsp;
+&nbsp;    // 객체 초기화 후 키 생성
+&nbsp;    @PostConstruct
+&nbsp;    public void init() {
+<b class="fc">&nbsp;        key = Keys.secretKeyFor(SignatureAlgorithm.HS512);</b>
+<b class="fc">&nbsp;    }</b>
+&nbsp;
+&nbsp;    // 액세스 토큰 만료 시간 (1시간)
+<b class="fc">&nbsp;    private final int accessTokenExpiration = 3600;</b>
+&nbsp;    // 리프레시 토큰 만료 시간 (2주)
+<b class="fc">&nbsp;    private final int refreshTokenExpiration = 1209600;</b>
+&nbsp;
+&nbsp;    // 전화번호를 사용해 액세스 토큰을 생성
+&nbsp;    public String generateAccessToken(String phoneNumber) {
+<b class="fc">&nbsp;        return Jwts.builder()</b>
+<b class="fc">&nbsp;                .setSubject(phoneNumber)</b>
+<b class="fc">&nbsp;                .setIssuedAt(new Date())</b>
+<b class="fc">&nbsp;                .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpiration * 1000))</b>
+<b class="fc">&nbsp;                .signWith(key, SignatureAlgorithm.HS512)</b>
+<b class="fc">&nbsp;                .compact();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // 전화번호를 사용해 리프레시 토큰을 생성
+&nbsp;    public String generateRefreshToken(String phoneNumber) {
+<b class="fc">&nbsp;        return Jwts.builder()</b>
+<b class="fc">&nbsp;                .setSubject(phoneNumber)</b>
+<b class="fc">&nbsp;                .setIssuedAt(new Date())</b>
+<b class="fc">&nbsp;                .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpiration * 1000))</b>
+<b class="fc">&nbsp;                .signWith(key, SignatureAlgorithm.HS512)</b>
+<b class="fc">&nbsp;                .compact();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // 토큰에서 전화번호 추출
+&nbsp;    public String getPhoneNumberFromToken(String token) {
+&nbsp;        try {
+<b class="fc">&nbsp;            Claims claims = Jwts.parserBuilder()</b>
+<b class="fc">&nbsp;                    .setSigningKey(key)</b>
+<b class="fc">&nbsp;                    .build()</b>
+<b class="fc">&nbsp;                    .parseClaimsJws(token)</b>
+<b class="fc">&nbsp;                    .getBody();</b>
+<b class="fc">&nbsp;            return claims.getSubject();</b>
+<b class="nc">&nbsp;        } catch (ExpiredJwtException e) {</b>
+<b class="nc">&nbsp;            throw new CustomException(ErrorMsg.INVALID_TOKEN);</b>
+<b class="fc">&nbsp;        } catch (JwtException | IllegalArgumentException e) {</b>
+<b class="fc">&nbsp;            throw new CustomException(ErrorMsg.INVALID_TOKEN);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    // 토큰 유효성 검증
+&nbsp;    public boolean validateToken(String token) {
+&nbsp;        try {
+<b class="fc">&nbsp;            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);</b>
+<b class="fc">&nbsp;            return true;</b>
+<b class="nc">&nbsp;        } catch (JwtException | IllegalArgumentException e) {</b>
+<b class="nc">&nbsp;            return false;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    // 개별 토큰을 무효화하는 메서드
+&nbsp;    public void revokeToken(String token) {
+<b class="fc">&nbsp;        RefreshToken refreshToken = refreshTokenRepository.findByToken(token).orElse(null);</b>
+<b class="pc">&nbsp;        if (refreshToken != null) {</b>
+<b class="fc">&nbsp;            refreshToken.expire();</b>
+<b class="fc">&nbsp;            refreshToken.revoke();</b>
+<b class="fc">&nbsp;            refreshTokenRepository.save(refreshToken);</b>
+&nbsp;        }
+<b class="fc">&nbsp;    }</b>
+&nbsp;
+&nbsp;    // 리프레시 토큰을 사용하여 새로운 액세스 토큰을 발급합니다.
+&nbsp;    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+&nbsp;        // Authorization 헤더에서 리프레시 토큰 추출
+<b class="fc">&nbsp;        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);</b>
+&nbsp;        final String refreshToken;
+&nbsp;        final String phoneNumber;
+&nbsp;
+&nbsp;        // Authorization 헤더가 존재하지 않거나 Bearer 토큰이 아니면 401 Unauthorized 응답
+<b class="fc">&nbsp;        if (authHeader == null || !authHeader.startsWith(&quot;Bearer &quot;)) {</b>
+<b class="fc">&nbsp;            throw new CustomException(ErrorMsg.MISSING_AUTHORIZATION_HEADER);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Bearer 토큰에서 실제 리프레시 토큰 값 추출
+<b class="fc">&nbsp;        refreshToken = authHeader.substring(7);</b>
+<b class="fc">&nbsp;        phoneNumber = getPhoneNumberFromToken(refreshToken);</b>
+&nbsp;
+&nbsp;        // 전화번호가 존재하고 리프레시 토큰이 유효한 경우
+<b class="pc">&nbsp;        if (phoneNumber != null) {</b>
+<b class="fc">&nbsp;            AdminEntity admin = this.adminRepository.findByPhoneNumber(phoneNumber).orElse(null);</b>
+&nbsp;
+&nbsp;            // 사용자가 존재하고 리프레시 토큰이 유효한 경우 새로운 액세스 토큰 발급
+<b class="pc">&nbsp;            if (admin != null &amp;&amp; validateToken(refreshToken)) {</b>
+<b class="fc">&nbsp;                String accessToken = generateAccessToken(admin.getPhoneNumber());</b>
+<b class="fc">&nbsp;                TokenResponse authResponse = new TokenResponse(accessToken, refreshToken);</b>
+&nbsp;
+&nbsp;                // 응답 헤더에 새로운 액세스 토큰 추가
+<b class="fc">&nbsp;                response.setHeader(&quot;Authorization&quot;, &quot;Bearer &quot; + accessToken);</b>
+&nbsp;
+&nbsp;                // 응답 본문에 액세스 토큰과 리프레시 토큰을 JSON 형식으로 작성
+<b class="fc">&nbsp;                new ObjectMapper().writeValue(response.getOutputStream(), authResponse);</b>
+&nbsp;            } else {
+&nbsp;                // 사용자가 없거나 리프레시 토큰이 유효하지 않은 경우 401 Unauthorized 응답
+<b class="nc">&nbsp;                throw new CustomException(ErrorMsg.UNAUTHORIZED_MEMBER);</b>
+&nbsp;            }
+&nbsp;        } else {
+&nbsp;            // 전화번호가 존재하지 않는 경우 401 Unauthorized 응답
+<b class="nc">&nbsp;            throw new CustomException(ErrorMsg.UNAUTHORIZED_MEMBER);</b>
+&nbsp;        }
+<b class="fc">&nbsp;    }</b>
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-08-06 19:51</div>
+</div>
+</body>
+</html>

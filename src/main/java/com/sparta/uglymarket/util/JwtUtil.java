@@ -5,10 +5,10 @@ import com.sparta.uglymarket.entity.RefreshToken;
 import com.sparta.uglymarket.repository.RefreshTokenRepository;
 import com.sparta.uglymarket.entity.AdminEntity;
 import com.sparta.uglymarket.repository.AdminRepository;
+import com.sparta.uglymarket.exception.CustomException;
+import com.sparta.uglymarket.exception.ErrorMsg;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
+
 import java.io.IOException;
 import java.security.Key;
 import java.util.Date;
@@ -62,12 +63,18 @@ public class JwtUtil {
 
     // 토큰에서 전화번호 추출
     public String getPhoneNumberFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-        return claims.getSubject();
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            return claims.getSubject();
+        } catch (ExpiredJwtException e) {
+            throw new CustomException(ErrorMsg.INVALID_TOKEN);
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new CustomException(ErrorMsg.INVALID_TOKEN);
+        }
     }
 
     // 토큰 유효성 검증
@@ -75,7 +82,7 @@ public class JwtUtil {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
-        } catch (Exception e) {
+        } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
@@ -99,8 +106,7 @@ public class JwtUtil {
 
         // Authorization 헤더가 존재하지 않거나 Bearer 토큰이 아니면 401 Unauthorized 응답
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return;
+            throw new CustomException(ErrorMsg.MISSING_AUTHORIZATION_HEADER);
         }
 
         // Bearer 토큰에서 실제 리프레시 토큰 값 추출
@@ -123,11 +129,11 @@ public class JwtUtil {
                 new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
             } else {
                 // 사용자가 없거나 리프레시 토큰이 유효하지 않은 경우 401 Unauthorized 응답
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                throw new CustomException(ErrorMsg.UNAUTHORIZED_MEMBER);
             }
         } else {
             // 전화번호가 존재하지 않는 경우 401 Unauthorized 응답
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            throw new CustomException(ErrorMsg.UNAUTHORIZED_MEMBER);
         }
     }
 }

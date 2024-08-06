@@ -1,0 +1,246 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AdminService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.sparta.uglymarket.service</a>
+</div>
+
+<h1>Coverage Summary for Class: AdminService (com.sparta.uglymarket.service)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AdminService</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (6/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    87.5%
+  </span>
+  <span class="absValue">
+    (7/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (37/37)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AdminService$MockitoMock$nk1M0Vpn</td>
+  </tr>
+  <tr>
+    <td class="name">AdminService$MockitoMock$nk1M0Vpn$auxiliary$960gS4NH</td>
+  </tr>
+  <tr>
+    <td class="name">AdminService$MockitoMock$nk1M0Vpn$auxiliary$ewLZxqeo</td>
+  </tr>
+  <tr>
+    <td class="name">AdminService$MockitoMock$nk1M0Vpn$auxiliary$KuWqC53N</td>
+  </tr>
+  <tr>
+    <td class="name">AdminService$MockitoMock$nk1M0Vpn$auxiliary$lGYxW8sl</td>
+  </tr>
+  <tr>
+    <td class="name">AdminService$MockitoMock$nk1M0Vpn$auxiliary$MhGpA30y</td>
+  </tr>
+  <tr>
+    <td class="name">AdminService$MockitoMock$nk1M0Vpn$auxiliary$xahWkSuy</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (6/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    87.5%
+  </span>
+  <span class="absValue">
+    (7/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (37/37)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.sparta.uglymarket.service;
+&nbsp;
+&nbsp;import com.sparta.uglymarket.dto.*;
+&nbsp;import com.sparta.uglymarket.entity.AdminEntity;
+&nbsp;import com.sparta.uglymarket.entity.RefreshToken;
+&nbsp;import com.sparta.uglymarket.entity.Role;
+&nbsp;import com.sparta.uglymarket.exception.CustomException;
+&nbsp;import com.sparta.uglymarket.exception.ErrorMsg;
+&nbsp;import com.sparta.uglymarket.repository.AdminRepository;
+&nbsp;import com.sparta.uglymarket.repository.RefreshTokenRepository;
+&nbsp;import com.sparta.uglymarket.util.JwtUtil;
+&nbsp;import com.sparta.uglymarket.util.PasswordUtil;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.http.HttpHeaders;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;@Service
+<b class="fc">&nbsp;@RequiredArgsConstructor</b>
+&nbsp;public class AdminService {
+&nbsp;
+&nbsp;    private final AdminRepository adminRepository;
+&nbsp;    private final JwtUtil jwtUtil;
+&nbsp;    private final RefreshTokenRepository refreshTokenRepository;
+&nbsp;    private final PasswordUtil passwordUtil;
+&nbsp;
+&nbsp;    // 회원가입
+&nbsp;    public AdminRegisterResponse register(AdminRegisterRequest adminRegisterRequest) {
+<b class="fc">&nbsp;        if (adminRepository.findByPhoneNumber(adminRegisterRequest.getPhoneNumber()).isPresent()) {</b>
+<b class="fc">&nbsp;            throw new CustomException(ErrorMsg.DUPLICATE_PHONE_NUMBER);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        AdminEntity adminEntity = new AdminEntity(adminRegisterRequest);</b>
+<b class="fc">&nbsp;        String encodedPassword = passwordUtil.encodePassword(adminRegisterRequest.getPassword());</b>
+<b class="fc">&nbsp;        adminEntity.setPassword(encodedPassword);</b>
+&nbsp;
+<b class="fc">&nbsp;        adminEntity.setRole(Role.ROLE_ADMIN);</b>
+<b class="fc">&nbsp;        adminRepository.save(adminEntity);</b>
+<b class="fc">&nbsp;        return new AdminRegisterResponse(&quot;회원가입 성공!&quot;, adminEntity.getRole().name());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // 로그인
+&nbsp;    public ResponseEntity&lt;AdminLoginResponse&gt; login(AdminLoginRequest requestDto) {
+<b class="fc">&nbsp;        AdminEntity admin = adminRepository.findByPhoneNumber(requestDto.getPhoneNumber())</b>
+<b class="fc">&nbsp;                .orElseThrow(() -&gt; new CustomException(ErrorMsg.PHONE_NUMBER_NOT_FOUND));</b>
+&nbsp;
+<b class="fc">&nbsp;        if (!passwordUtil.matches(requestDto.getPassword(), admin.getPassword())) {</b>
+<b class="fc">&nbsp;            throw new CustomException(ErrorMsg.INVALID_PASSWORD);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        String token = jwtUtil.generateAccessToken(admin.getPhoneNumber());</b>
+<b class="fc">&nbsp;        String refreshToken = jwtUtil.generateRefreshToken(admin.getPhoneNumber());</b>
+&nbsp;
+<b class="fc">&nbsp;        AdminLoginResponse responseDto = new AdminLoginResponse(&quot;로그인 성공!&quot;);</b>
+<b class="fc">&nbsp;        HttpHeaders headers = new HttpHeaders();</b>
+<b class="fc">&nbsp;        headers.add(&quot;Authorization&quot;, &quot;Bearer &quot; + token);</b>
+<b class="fc">&nbsp;        headers.add(&quot;Refresh-Token&quot;, &quot;Bearer &quot; + refreshToken);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(responseDto, headers, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // 회원 정보 수정
+&nbsp;    public AdminUpdateResponse updateAdmin(Long id, AdminRegisterRequest adminRequest) {
+<b class="fc">&nbsp;        AdminEntity admin = adminRepository.findById(id)</b>
+<b class="fc">&nbsp;                .orElseThrow(() -&gt; new CustomException(ErrorMsg.ADMIN_NOT_FOUND));</b>
+&nbsp;
+<b class="fc">&nbsp;        if (!admin.getPhoneNumber().equals(adminRequest.getPhoneNumber()) &amp;&amp;</b>
+<b class="pc">&nbsp;                adminRepository.findByPhoneNumber(adminRequest.getPhoneNumber()).isPresent()) {</b>
+<b class="fc">&nbsp;            throw new CustomException(ErrorMsg.DUPLICATE_PHONE_NUMBER);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        admin.update(adminRequest);</b>
+<b class="fc">&nbsp;        adminRepository.save(admin);</b>
+<b class="fc">&nbsp;        return new AdminUpdateResponse(&quot;회원 정보 수정 성공!&quot;, admin.getRole().name());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // 로그아웃
+&nbsp;    public LogoutResponse logout(String token) {
+<b class="fc">&nbsp;        String phoneNumber = jwtUtil.getPhoneNumberFromToken(token);</b>
+<b class="fc">&nbsp;        adminRepository.findByPhoneNumber(phoneNumber)</b>
+<b class="fc">&nbsp;                .orElseThrow(() -&gt; new CustomException(ErrorMsg.PHONE_NUMBER_NOT_FOUND));</b>
+&nbsp;
+<b class="fc">&nbsp;        jwtUtil.revokeToken(token);</b>
+<b class="fc">&nbsp;        List&lt;RefreshToken&gt; refreshTokens = refreshTokenRepository.findByPhoneNumber(phoneNumber);</b>
+<b class="fc">&nbsp;        refreshTokens.forEach(refreshToken -&gt; {</b>
+<b class="fc">&nbsp;            jwtUtil.revokeToken(refreshToken.getToken());</b>
+<b class="fc">&nbsp;        });</b>
+&nbsp;
+<b class="fc">&nbsp;        return new LogoutResponse(&quot;로그아웃 성공!&quot;);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-08-06 19:51</div>
+</div>
+</body>
+</html>
