@@ -7,89 +7,91 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class AdminControllerTest {
-
-    @InjectMocks
-    private AdminController adminController;
+public class AdminControllerTest {
 
     @Mock
     private AdminService adminService;
 
+    @InjectMocks
+    private AdminController adminController;
+
+    private MockMvc mockMvc;
+
     @BeforeEach
-    void setUp() {
+    public void setup() {
         MockitoAnnotations.openMocks(this);
+        mockMvc = MockMvcBuilders.standaloneSetup(adminController).build();
     }
 
     @Test
-    void register() {
-        // given
-        AdminRegisterRequest request = mock(AdminRegisterRequest.class);
-        AdminRegisterResponse response = mock(AdminRegisterResponse.class);
-        when(adminService.register(any(AdminRegisterRequest.class))).thenReturn(response);
+    public void testRegister() throws Exception {
+        AdminRegisterResponse mockResponse = new AdminRegisterResponse("User registered successfully", "ROLE_USER");
+        when(adminService.register(any(AdminRegisterRequest.class))).thenReturn(mockResponse);
 
-        // when
-        ResponseEntity<AdminRegisterResponse> result = adminController.register(request);
-
-        // then
-        assertEquals(HttpStatus.CREATED, result.getStatusCode());
-        assertEquals(response, result.getBody());
-        verify(adminService, times(1)).register(request);
+        mockMvc.perform(post("/api/admin/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"password\": \"password\", \"phoneNumber\": \"123-456-7890\", \"farmName\": \"Farm Name\", \"introMessage\": \"Intro\", \"profileImageUrl\": \"http://example.com/profile.jpg\", \"minOrderAmount\": 1000, \"businessId\": \"1234567890\", \"openingDate\": \"2024-01-01\", \"leaderName\": \"Leader Name\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(content().json("{\"message\":\"User registered successfully\", \"role\":\"ROLE_USER\"}"));
     }
 
     @Test
-    void login() {
-        // given
-        AdminLoginRequest request = mock(AdminLoginRequest.class);
-        AdminLoginResponse loginResponse = mock(AdminLoginResponse.class);
-        ResponseEntity<AdminLoginResponse> response = new ResponseEntity<>(loginResponse, HttpStatus.OK);
-        when(adminService.login(any(AdminLoginRequest.class))).thenReturn(response);
+    public void testUpdateAdmin() throws Exception {
+        AdminUpdateResponse mockResponse = new AdminUpdateResponse("User updated successfully", "ROLE_USER");
+        when(adminService.updateAdmin(anyLong(), any(AdminUpdateRequest.class))).thenReturn(mockResponse);
 
-        // when
-        ResponseEntity<AdminLoginResponse> result = adminController.login(request);
-
-        // then
-        assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertEquals(response.getBody(), result.getBody());
-        verify(adminService, times(1)).login(request);
+        mockMvc.perform(put("/api/admin/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"password\": \"newpassword\", \"phoneNumber\": \"123-456-7890\", \"farmName\": \"New Farm Name\", \"introMessage\": \"Intro\", \"profileImageUrl\": \"http://example.com/profile.jpg\", \"minOrderAmount\": 1000, \"businessId\": \"1234567890\", \"openingDate\": \"2024-01-01\", \"leaderName\": \"Leader Name\"}"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"message\":\"User updated successfully\", \"role\":\"ROLE_USER\"}"));
     }
 
     @Test
-    void updateAdmin() {
-        // given
-        Long id = 1L;
-        AdminRegisterRequest request = mock(AdminRegisterRequest.class);
-        AdminUpdateResponse response = mock(AdminUpdateResponse.class);
-        when(adminService.updateAdmin(eq(id), any(AdminRegisterRequest.class))).thenReturn(response);
+    public void testLogin() throws Exception {
+        AdminLoginResponse loginResponse = new AdminLoginResponse("valid-token");
+        ResponseEntity<AdminLoginResponse> responseEntity = ResponseEntity.ok(loginResponse);
 
-        // when
-        ResponseEntity<AdminUpdateResponse> result = adminController.updateAdmin(id, request);
+        doReturn(responseEntity).when(adminService).login(any(AdminLoginRequest.class));
 
-        // then
-        assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertEquals(response, result.getBody());
-        verify(adminService, times(1)).updateAdmin(eq(id), eq(request));
+        mockMvc.perform(post("/api/admin/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\": \"username\", \"password\": \"password\"}"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"message\":\"valid-token\"}"));
+    }
+
+
+
+    @Test
+    public void testLogout() throws Exception {
+        LogoutResponse mockResponse = new LogoutResponse("Logout successful");
+        when(adminService.logout(anyString())).thenReturn(mockResponse);
+
+        mockMvc.perform(post("/api/admin/logout")
+                        .header("Authorization", "Bearer token"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"message\":\"Logout successful\"}"));
     }
 
     @Test
-    void logout() {
-        // given
-        String token = "someToken";
-        LogoutResponse response = mock(LogoutResponse.class);
-        when(adminService.logout(eq(token))).thenReturn(response);
-
-        // when
-        ResponseEntity<LogoutResponse> result = adminController.logout(token);
-
-        // then
-        assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertEquals(response, result.getBody());
-        verify(adminService, times(1)).logout(eq(token));
+    public void testUpdateAdminWithInvalidData() throws Exception {
+        mockMvc.perform(put("/api/admin/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"password\": \"123\", \"phoneNumber\": \"123\", \"farmName\": \"\"}"))
+                .andExpect(status().isBadRequest());
     }
 }

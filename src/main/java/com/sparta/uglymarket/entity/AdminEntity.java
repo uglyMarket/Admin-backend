@@ -1,6 +1,7 @@
 package com.sparta.uglymarket.entity;
 
 import com.sparta.uglymarket.dto.AdminRegisterRequest;
+import com.sparta.uglymarket.dto.AdminUpdateRequest;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -62,20 +63,17 @@ public class AdminEntity {
     }
 
     // 엔티티 수정 메서드
-    public void update(AdminRegisterRequest adminRegisterRequest) {
-        this.phoneNumber = adminRegisterRequest.getPhoneNumber();
-        this.password = adminRegisterRequest.getPassword();
-        this.farmName = adminRegisterRequest.getFarmName();
-        this.introMessage = adminRegisterRequest.getIntroMessage();
-        this.profileImageUrl = adminRegisterRequest.getProfileImageUrl();
-        this.leaderName = adminRegisterRequest.getLeaderName();
-        this.businessId = adminRegisterRequest.getBusinessId();
-        this.openingDate = adminRegisterRequest.getOpeningDate();
-        this.minOrderAmount = adminRegisterRequest.getMinOrderAmount();
+    public void update(AdminUpdateRequest adminUpdateRequest) {
+        this.phoneNumber = adminUpdateRequest.getPhoneNumber();
+        this.password = adminUpdateRequest.getPassword();
+        this.farmName = adminUpdateRequest.getFarmName();
+        this.introMessage = adminUpdateRequest.getIntroMessage();
+        this.profileImageUrl = adminUpdateRequest.getProfileImageUrl();
+        this.leaderName = adminUpdateRequest.getLeaderName();
+        this.businessId = adminUpdateRequest.getBusinessId();
+        this.openingDate = adminUpdateRequest.getOpeningDate();
+        this.minOrderAmount = adminUpdateRequest.getMinOrderAmount();
     }
-//    public Role getRole() {
-//        return role;
-//    }
 
     public void setRole(Role role) {
         this.role = role;

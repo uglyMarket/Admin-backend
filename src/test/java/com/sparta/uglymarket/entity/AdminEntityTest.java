@@ -1,92 +1,88 @@
 package com.sparta.uglymarket.entity;
 
-import com.sparta.uglymarket.dto.AdminRegisterRequest;
+import com.sparta.uglymarket.dto.AdminUpdateRequest;
+import com.sparta.uglymarket.dto.AdminUpdateResponse;
+import com.sparta.uglymarket.exception.CustomException;
+import com.sparta.uglymarket.exception.ErrorMsg;
+import com.sparta.uglymarket.repository.AdminRepository;
+import com.sparta.uglymarket.service.AdminService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 class AdminEntityTest {
 
-    private AdminRegisterRequest adminRegisterRequest;
+    @Mock
+    private AdminRepository adminRepository;
+
+    @InjectMocks
+    private AdminService adminService;
+
     private AdminEntity adminEntity;
 
     @BeforeEach
     void setUp() {
-        adminRegisterRequest = mock(AdminRegisterRequest.class);
-        when(adminRegisterRequest.getPhoneNumber()).thenReturn("010-1234-5678");
-        when(adminRegisterRequest.getPassword()).thenReturn("password");
-        when(adminRegisterRequest.getFarmName()).thenReturn("My Farm");
-        when(adminRegisterRequest.getIntroMessage()).thenReturn("Welcome to My Farm");
-        when(adminRegisterRequest.getProfileImageUrl()).thenReturn("http://example.com/profile.jpg");
-        when(adminRegisterRequest.getLeaderName()).thenReturn("John Doe");
-        when(adminRegisterRequest.getBusinessId()).thenReturn("1234567890");
-        when(adminRegisterRequest.getOpeningDate()).thenReturn("2023-01-01");
-        when(adminRegisterRequest.getMinOrderAmount()).thenReturn(10000L);
+        MockitoAnnotations.openMocks(this);
+        adminEntity = mock(AdminEntity.class);
 
-        adminEntity = new AdminEntity(adminRegisterRequest);
+        when(adminEntity.getPhoneNumber()).thenReturn("010-1234-5678");
+        when(adminEntity.getPassword()).thenReturn("password");
+        when(adminEntity.getRole()).thenReturn(Role.ROLE_ADMIN);
+        when(adminEntity.getFarmName()).thenReturn("Farm Name");
+        when(adminEntity.getIntroMessage()).thenReturn("Intro Message");
+        when(adminEntity.getProfileImageUrl()).thenReturn("http://example.com/profile.jpg");
+        when(adminEntity.getLeaderName()).thenReturn("Jane Doe");
+        when(adminEntity.getBusinessId()).thenReturn("1234567890");
+        when(adminEntity.getOpeningDate()).thenReturn("2023-01-01");
+        when(adminEntity.getMinOrderAmount()).thenReturn(10000L);
     }
 
     @Test
-    void testAdminEntityConstructor() {
-        // then
-        assertEquals(adminRegisterRequest.getPhoneNumber(), adminEntity.getPhoneNumber());
-        assertEquals(adminRegisterRequest.getPassword(), adminEntity.getPassword());
-        assertEquals(adminRegisterRequest.getFarmName(), adminEntity.getFarmName());
-        assertEquals(adminRegisterRequest.getIntroMessage(), adminEntity.getIntroMessage());
-        assertEquals(adminRegisterRequest.getProfileImageUrl(), adminEntity.getProfileImageUrl());
-        assertEquals(adminRegisterRequest.getLeaderName(), adminEntity.getLeaderName());
-        assertEquals(adminRegisterRequest.getBusinessId(), adminEntity.getBusinessId());
-        assertEquals(adminRegisterRequest.getOpeningDate(), adminEntity.getOpeningDate());
-        assertEquals(adminRegisterRequest.getMinOrderAmount(), adminEntity.getMinOrderAmount());
-        assertEquals(Role.ROLE_ADMIN, adminEntity.getRole());
-    }
-
-    @Test
-    void testUpdate() {
+    void updateAdmin() {
         // given
-        AdminRegisterRequest updatedRequest = mock(AdminRegisterRequest.class);
-        when(updatedRequest.getPhoneNumber()).thenReturn("010-9876-5432");
-        when(updatedRequest.getPassword()).thenReturn("newpassword");
-        when(updatedRequest.getFarmName()).thenReturn("New Farm");
-        when(updatedRequest.getIntroMessage()).thenReturn("Welcome to New Farm");
-        when(updatedRequest.getProfileImageUrl()).thenReturn("http://example.com/newprofile.jpg");
-        when(updatedRequest.getLeaderName()).thenReturn("Jane Doe");
-        when(updatedRequest.getBusinessId()).thenReturn("0987654321");
-        when(updatedRequest.getOpeningDate()).thenReturn("2024-01-01");
-        when(updatedRequest.getMinOrderAmount()).thenReturn(20000L);
+        Long id = 1L;
+        AdminUpdateRequest request = mock(AdminUpdateRequest.class);
+        when(request.getPhoneNumber()).thenReturn("010-9876-5432");
+        when(request.getPassword()).thenReturn("newpassword");
+        when(request.getFarmName()).thenReturn("Updated Farm");
+        when(request.getIntroMessage()).thenReturn("Updated Message");
+        when(request.getProfileImageUrl()).thenReturn("http://example.com/updated.jpg");
+        when(request.getLeaderName()).thenReturn("John Doe");
+        when(request.getBusinessId()).thenReturn("0987654321");
+        when(request.getOpeningDate()).thenReturn("2024-01-01");
+        when(request.getMinOrderAmount()).thenReturn(20000L);
+
+        when(adminRepository.findById(eq(id))).thenReturn(Optional.of(adminEntity));
+        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.empty());
 
         // when
-        adminEntity.update(updatedRequest);
+        adminService.updateAdmin(id, request);
 
         // then
-        assertEquals(updatedRequest.getPhoneNumber(), adminEntity.getPhoneNumber());
-        assertEquals(updatedRequest.getPassword(), adminEntity.getPassword());
-        assertEquals(updatedRequest.getFarmName(), adminEntity.getFarmName());
-        assertEquals(updatedRequest.getIntroMessage(), adminEntity.getIntroMessage());
-        assertEquals(updatedRequest.getProfileImageUrl(), adminEntity.getProfileImageUrl());
-        assertEquals(updatedRequest.getLeaderName(), adminEntity.getLeaderName());
-        assertEquals(updatedRequest.getBusinessId(), adminEntity.getBusinessId());
-        assertEquals(updatedRequest.getOpeningDate(), adminEntity.getOpeningDate());
-        assertEquals(updatedRequest.getMinOrderAmount(), adminEntity.getMinOrderAmount());
+        verify(adminEntity).update(request);
+        verify(adminRepository, times(1)).save(adminEntity);
     }
 
     @Test
-    void testSetRole() {
-        // when
-        adminEntity.setRole(Role.ROLE_ADMIN);
+    void updateAdmin_throwsException_whenAdminNotFound() {
+        // given
+        Long id = 1L;
+        AdminUpdateRequest request = mock(AdminUpdateRequest.class);
+        when(adminRepository.findById(eq(id))).thenReturn(Optional.empty());
 
-        // then
-        assertEquals(Role.ROLE_ADMIN, adminEntity.getRole());
-    }
-
-    @Test
-    void testSetPassword() {
-        // when
-        adminEntity.setPassword("newpassword");
-
-        // then
-        assertEquals("newpassword", adminEntity.getPassword());
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, () -> adminService.updateAdmin(id, request));
+        assertEquals(ErrorMsg.ADMIN_NOT_FOUND.getHttpStatus(), exception.getHttpStatus());
     }
 }

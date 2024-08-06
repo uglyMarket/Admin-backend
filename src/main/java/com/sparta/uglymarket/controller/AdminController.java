@@ -31,7 +31,7 @@ public class AdminController {
 
     // 회원 정보 수정
     @PutMapping("/{id}")
-    public ResponseEntity<AdminUpdateResponse> updateAdmin(@PathVariable Long id, @Valid @RequestBody AdminRegisterRequest adminRequest) {
+    public ResponseEntity<AdminUpdateResponse> updateAdmin(@PathVariable Long id, @Valid @RequestBody AdminUpdateRequest adminRequest) {
         AdminUpdateResponse adminUpdateResponse = adminService.updateAdmin(id, adminRequest);
         return new ResponseEntity<>(adminUpdateResponse, HttpStatus.OK);
     }

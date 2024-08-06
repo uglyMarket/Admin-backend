@@ -63,7 +63,7 @@ public class AdminService {
     }
 
     // 회원 정보 수정
-    public AdminUpdateResponse updateAdmin(Long id, AdminRegisterRequest adminRequest) {
+    public AdminUpdateResponse updateAdmin(Long id, AdminUpdateRequest adminRequest) {
         AdminEntity admin = adminRepository.findById(id)
                 .orElseThrow(() -> new CustomException(ErrorMsg.ADMIN_NOT_FOUND));
 

@@ -2,8 +2,13 @@ package com.sparta.uglymarket.util;
 
 import com.sparta.uglymarket.entity.AdminEntity;
 import com.sparta.uglymarket.entity.RefreshToken;
+import com.sparta.uglymarket.exception.CustomException;
 import com.sparta.uglymarket.repository.AdminRepository;
 import com.sparta.uglymarket.repository.RefreshTokenRepository;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -12,6 +17,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
+import java.util.Date;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -104,5 +110,61 @@ class JwtUtilTest {
         String newAccessToken = response.getHeader("Authorization").substring(7);
         assertNotNull(newAccessToken);
         assertEquals(phoneNumber, jwtUtil.getPhoneNumberFromToken(newAccessToken));
+    }
+
+    @Test
+    void testRefreshTokenWithInvalidHeader() throws Exception {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "InvalidToken");
+
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        assertThrows(CustomException.class, () -> jwtUtil.refreshToken(request, response));
+    }
+
+    @Test
+    void testRefreshTokenWithNullHeader() throws Exception {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        assertThrows(CustomException.class, () -> jwtUtil.refreshToken(request, response));
+    }
+
+    @Test
+    void testRefreshTokenWithInvalidToken() throws Exception {
+        // 유효하지만 잘못된 서명을 가진 토큰 생성
+        String phoneNumber = "01012345678";
+        String validToken = jwtUtil.generateRefreshToken(phoneNumber);
+
+        // 유효한 토큰의 마지막 부분을 잘못된 문자열로 변경하여 잘못된 서명을 가진 토큰으로 만듭니다.
+        String invalidToken = validToken.substring(0, validToken.lastIndexOf('.') + 1) + "invalidSignature";
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer " + invalidToken);
+
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        assertThrows(CustomException.class, () -> jwtUtil.refreshToken(request, response));
+    }
+
+
+
+    @Test
+    void testRefreshTokenWithExpiredToken() throws Exception {
+        String phoneNumber = "01012345678";
+        String expiredToken = Jwts.builder()
+                .setSubject(phoneNumber)
+                .setIssuedAt(new Date(System.currentTimeMillis() - 3600000)) // 1 hour ago
+                .setExpiration(new Date(System.currentTimeMillis() - 1800000)) // 30 minutes ago
+                .signWith(Keys.secretKeyFor(SignatureAlgorithm.HS512), SignatureAlgorithm.HS512)
+                .compact();
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer " + expiredToken);
+
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        assertThrows(CustomException.class, () -> jwtUtil.refreshToken(request, response));
     }
 }
