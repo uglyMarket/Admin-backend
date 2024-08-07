@@ -1,5 +1,5 @@
 package com.sparta.uglymarket.entity;
 
-public enum dfTokenType {
+public enum TokenType {
     REFRESH
 }
