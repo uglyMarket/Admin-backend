@@ -1,68 +1,87 @@
-//package com.sparta.uglymarket.service;
-//
-//import com.sparta.uglymarket.entity.AdminEntity;
-//import com.sparta.uglymarket.entity.RefreshToken;
-//import com.sparta.uglymarket.entity.TokenType;
-//import com.sparta.uglymarket.repository.RefreshTokenRepository;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.mockito.InjectMocks;
-//import org.mockito.Mock;
-//import org.mockito.MockitoAnnotations;
-//
-//import java.util.Collections;
-//import java.util.List;
-//
-//import static org.mockito.ArgumentMatchers.any;
-//import static org.mockito.ArgumentMatchers.anyString;
-//import static org.mockito.Mockito.*;
-//
-//class TokenServiceTest {
-//
-//    @Mock
-//    private RefreshTokenRepository refreshTokenRepository;
-//
-//    @InjectMocks
-//    private TokenService tokenService;
-//
-//    private AdminEntity adminEntity;
-//
-//    @BeforeEach
-//    void setUp() {
-//        MockitoAnnotations.openMocks(this);
-//        adminEntity = mock(AdminEntity.class);
-//        when(adminEntity.getPhoneNumber()).thenReturn("010-1234-5678");
-//    }
-//
-//    @Test
-//    void testSaveToken() {
-//        String refreshToken = "sample_refresh_token";
-//
-//        when(refreshTokenRepository.findAllValidTokenByPhoneNumber(anyString())).thenReturn(Collections.emptyList());
-//
-//        tokenService.saveToken(adminEntity, refreshToken);
-//
-//        verify(refreshTokenRepository, times(1)).findAllValidTokenByPhoneNumber("010-1234-5678");
-//        verify(refreshTokenRepository, times(1)).save(any(RefreshToken.class));
-//    }
-//
-//    @Test
-//    void testRevokeAllUserTokens() {
-//        RefreshToken validToken = RefreshToken.builder()
-//                .token("valid_token")
-//                .tokenType(TokenType.REFRESH)
-//                .expired(false)
-//                .revoked(false)
-//                .phoneNumber("010-1234-5678")
-//                .build();
-//
-//        when(refreshTokenRepository.findAllValidTokenByPhoneNumber(anyString())).thenReturn(List.of(validToken));
-//
-//        tokenService.revokeAllUserTokens(adminEntity);
-//
-//        verify(refreshTokenRepository, times(1)).findAllValidTokenByPhoneNumber("010-1234-5678");
-//        verify(refreshTokenRepository, times(1)).saveAll(anyList());
-//        assert validToken.isExpired();
-//        assert validToken.isRevoked();
-//    }
-//}
+package com.sparta.uglymarket.service;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sparta.uglymarket.dto.TokenResponse;
+import com.sparta.uglymarket.entity.AdminEntity;
+import com.sparta.uglymarket.entity.RefreshToken;
+import com.sparta.uglymarket.entity.Role;
+import com.sparta.uglymarket.entity.TokenType;
+import com.sparta.uglymarket.exception.CustomException;
+import com.sparta.uglymarket.exception.ErrorMsg;
+import com.sparta.uglymarket.repository.AdminRepository;
+import com.sparta.uglymarket.repository.RefreshTokenRepository;
+import com.sparta.uglymarket.util.ITokenUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpHeaders;
+import org.springframework.mock.web.MockHttpServletResponse;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+class TokenServiceTest {
+
+    @Mock
+    private ITokenUtil tokenUtil;
+
+    @Mock
+    private AdminRepository adminRepository;
+
+    @Mock
+    private RefreshTokenRepository refreshTokenRepository;
+
+    @InjectMocks
+    private TokenService tokenService;
+
+    private AdminEntity adminEntity;
+    private RefreshToken refreshToken;
+    private HttpServletRequest request;
+    private HttpServletResponse response;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+
+        adminEntity = new AdminEntity(
+                1L, "01012345678", "encodedPassword",
+                Role.ROLE_ADMIN, "farmName",
+                "introMessage", "profileImageUrl",
+                "leaderName", "businessId",
+                "openingDate", 10000L);
+
+        refreshToken = RefreshToken.builder()
+                .token("refreshToken")
+                .tokenType(TokenType.REFRESH)
+                .expired(false)
+                .revoked(false)
+                .phoneNumber("01012345678")
+                .build();
+
+        request = mock(HttpServletRequest.class);
+        response = mock(HttpServletResponse.class);
+    }
+
+    @Test
+    void testGenerateAccessToken() {
+        // given
+        when(tokenUtil.generateAccessToken(anyString())).thenReturn("accessToken");
+
+        // when
+        String accessToken = tokenService.generateAccessToken("01012345678");
+
+        // then
+        assertEquals("accessToken", accessToken);
+    }
+}
