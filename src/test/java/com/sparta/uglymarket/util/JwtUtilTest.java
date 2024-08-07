@@ -79,4 +79,22 @@ class JwtUtilTest {
         // then
         assertEquals(phoneNumber, extractedPhoneNumber);
     }
+
+    @Test
+    void testGetPhoneNumberFromExpiredToken() {
+        // given
+        String phoneNumber = "01012345678";
+        String token = Jwts.builder()
+                .setSubject(phoneNumber)
+                .setIssuedAt(new Date(System.currentTimeMillis() - 1000))
+                .setExpiration(new Date(System.currentTimeMillis() - 500))
+                .signWith(key, SignatureAlgorithm.HS512)
+                .compact();
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            jwtUtil.getPhoneNumberFromToken(token);
+        });
+        assertEquals(ErrorMsg.INVALID_TOKEN.getDetails(), exception.getMessage());
+    }
 }
