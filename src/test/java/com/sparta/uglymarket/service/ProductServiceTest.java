@@ -87,4 +87,16 @@ class ProductServiceTest {
 
         assertEquals(ErrorMsg.PRODUCT_NOT_FOUND.getDetails(), exception.getMessage());
     }
+    @Test
+    void testGetProducts() {
+        // given
+        when(productRepository.findAll()).thenReturn(List.of(productEntity));
+
+        // when
+        List<ProductsGetResponse> response = productService.getProducts();
+
+        // then
+        assertFalse(response.isEmpty());
+        assertEquals(1, response.size());
+    }
 }
