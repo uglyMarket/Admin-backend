@@ -52,7 +52,8 @@ public class ProductService {
 
     // 상품 삭제
     public ProductDeleteResponse deleteProduct(Long id) {
-        productRepository.deleteById(id);
+        ProductEntity product = findProductById(id);
+        deleteProductEntity(product);
         return new ProductDeleteResponse("상품이 성공적으로 삭제되었습니다.");
     }
 
@@ -101,5 +102,10 @@ public class ProductService {
     // 제품 엔티티를 ProductGetResponse로 변환
     private ProductGetResponse convertToProductGetResponse(ProductEntity product) {
         return new ProductGetResponse("상품 조회 성공", product);
+    }
+
+    // 제품 엔티티 삭제
+    private void deleteProductEntity(ProductEntity product) {
+        productRepository.delete(product);
     }
 }
