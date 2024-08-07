@@ -49,18 +49,6 @@ public class AdminEntity {
     @Column(nullable = false)
     private Long minOrderAmount;
 
-    public AdminEntity(AdminRegisterRequest adminRegisterRequest) {
-        this.phoneNumber = adminRegisterRequest.getPhoneNumber();
-        this.password = adminRegisterRequest.getPassword();
-        this.role = Role.ROLE_ADMIN;
-        this.farmName = adminRegisterRequest.getFarmName();
-        this.introMessage = adminRegisterRequest.getIntroMessage();
-        this.profileImageUrl = adminRegisterRequest.getProfileImageUrl();
-        this.leaderName = adminRegisterRequest.getLeaderName();
-        this.businessId = adminRegisterRequest.getBusinessId();
-        this.openingDate = adminRegisterRequest.getOpeningDate();
-        this.minOrderAmount = adminRegisterRequest.getMinOrderAmount();
-    }
 
     // 엔티티 수정 메서드
     public void update(AdminUpdateRequest adminUpdateRequest) {

@@ -6,6 +6,7 @@ import com.sparta.uglymarket.entity.RefreshToken;
 import com.sparta.uglymarket.entity.Role;
 import com.sparta.uglymarket.exception.CustomException;
 import com.sparta.uglymarket.exception.ErrorMsg;
+import com.sparta.uglymarket.factory.AdminFactory;
 import com.sparta.uglymarket.repository.AdminRepository;
 import com.sparta.uglymarket.repository.RefreshTokenRepository;
 import com.sparta.uglymarket.util.PasswordUtil;
@@ -24,6 +25,7 @@ public class AdminService {
     private final TokenService tokenService;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordUtil passwordUtil;
+    private final AdminFactory adminFactory;
 
     // 회원 가입
     public AdminRegisterResponse register(AdminRegisterRequest adminRegisterRequest) {
@@ -76,10 +78,9 @@ public class AdminService {
 
     // AdminRegisterRequest를 AdminEntity로 변환하고 비밀번호를 암호화하여 엔티티 생성
     private AdminEntity createAdminEntity(AdminRegisterRequest adminRegisterRequest) {
-        AdminEntity adminEntity = new AdminEntity(adminRegisterRequest);
+        AdminEntity adminEntity = adminFactory.createAdmin(adminRegisterRequest);
         String encodedPassword = passwordUtil.encodePassword(adminRegisterRequest.getPassword());
         adminEntity.setPassword(encodedPassword);
-        adminEntity.setRole(Role.ROLE_ADMIN);
         return adminEntity;
     }
 
