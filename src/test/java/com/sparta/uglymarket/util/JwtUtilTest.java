@@ -110,4 +110,16 @@ class JwtUtilTest {
         // then
         assertTrue(isValid);
     }
+
+    @Test
+    void testValidateInvalidToken() {
+        // given
+        String token = "invalidToken";
+
+        // when
+        boolean isValid = jwtUtil.validateToken(token);
+
+        // then
+        assertFalse(isValid);
+    }
 }
