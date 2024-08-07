@@ -120,4 +120,16 @@ class TokenServiceTest {
         // then
         assertTrue(isValid);
     }
+
+    @Test
+    void testRevokeToken() {
+        // given
+        doNothing().when(tokenUtil).revokeToken(anyString());
+
+        // when
+        tokenService.revokeToken("token");
+
+        // then
+        verify(tokenUtil).revokeToken("token");
+    }
 }
