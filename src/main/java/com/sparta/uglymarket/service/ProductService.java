@@ -39,17 +39,9 @@ public class ProductService {
 
     // 모든 상품 조회
     public List<ProductsGetResponse> getProducts() {
-        List<ProductEntity> products = productRepository.findAll();
-        if (products.isEmpty()) {
-            throw new CustomException(ErrorMsg.PRODUCT_NOT_FOUND);
-        }
-
-        List<ProductsGetResponse> productsGetResponseList = new ArrayList<>();
-        for (ProductEntity product : products) {
-            productsGetResponseList.add(new ProductsGetResponse(product));
-        }
-
-        return productsGetResponseList;
+        List<ProductEntity> products = fetchAllProducts();
+        checkIfProductsEmpty(products);
+        return convertToResponseList(products);
     }
 
     // 특정 상품 조회
@@ -58,7 +50,6 @@ public class ProductService {
                 .map(product -> new ProductGetResponse("상품 조회 성공", product))
                 .orElseThrow(() -> new CustomException(ErrorMsg.PRODUCT_NOT_FOUND));
     }
-
 
     // 상품 삭제
     public ProductDeleteResponse deleteProduct(Long id) {
@@ -85,5 +76,26 @@ public class ProductService {
     // 제품 엔티티 업데이트
     private void updateProductEntity(ProductEntity existingProduct, ProductUpdateRequest productUpdateRequest) {
         existingProduct.updateFromRequest(productUpdateRequest);
+    }
+
+    // 모든 제품을 가져오기
+    private List<ProductEntity> fetchAllProducts() {
+        return productRepository.findAll();
+    }
+
+    // 제품 목록이 비어 있는지 확인
+    private void checkIfProductsEmpty(List<ProductEntity> products) {
+        if (products.isEmpty()) {
+            throw new CustomException(ErrorMsg.PRODUCT_NOT_FOUND);
+        }
+    }
+
+    // 제품 엔티티 목록을 DTO 목록으로 변환
+    private List<ProductsGetResponse> convertToResponseList(List<ProductEntity> products) {
+        List<ProductsGetResponse> productsGetResponseList = new ArrayList<>();
+        for (ProductEntity product : products) {
+            productsGetResponseList.add(new ProductsGetResponse(product));
+        }
+        return productsGetResponseList;
     }
 }
