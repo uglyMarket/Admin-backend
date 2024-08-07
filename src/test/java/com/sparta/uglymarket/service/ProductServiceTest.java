@@ -99,4 +99,14 @@ class ProductServiceTest {
         assertFalse(response.isEmpty());
         assertEquals(1, response.size());
     }
+    @Test
+    void testGetProducts_ThrowsException() {
+        // given
+        when(productRepository.findAll()).thenReturn(Collections.emptyList());
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, productService::getProducts);
+
+        assertEquals(ErrorMsg.PRODUCT_NOT_FOUND.getDetails(), exception.getMessage());
+    }
 }
