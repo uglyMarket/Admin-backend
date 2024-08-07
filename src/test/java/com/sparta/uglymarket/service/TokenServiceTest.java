@@ -96,4 +96,16 @@ class TokenServiceTest {
         // then
         assertEquals("refreshToken", refreshToken);
     }
+
+    @Test
+    void testGetPhoneNumberFromToken() {
+        // given
+        when(tokenUtil.getPhoneNumberFromToken(anyString())).thenReturn("01012345678");
+
+        // when
+        String phoneNumber = tokenService.getPhoneNumberFromToken("token");
+
+        // then
+        assertEquals("01012345678", phoneNumber);
+    }
 }
