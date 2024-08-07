@@ -31,11 +31,9 @@ public class ProductService {
     // 상품 업데이트
     @Transactional
     public ProductUpdateResponse updateProduct(Long id, ProductUpdateRequest productUpdateRequest) {
-        ProductEntity existingProduct = productRepository.findById(id)
-                .orElseThrow(() -> new CustomException(ErrorMsg.PRODUCT_NOT_FOUND));
-
-        existingProduct.updateFromRequest(productUpdateRequest);
-        ProductEntity updatedProduct = productRepository.save(existingProduct);
+        ProductEntity existingProduct = findProductById(id);
+        updateProductEntity(existingProduct, productUpdateRequest);
+        ProductEntity updatedProduct = saveProduct(existingProduct);
         return new ProductUpdateResponse("상품이 성공적으로 업데이트되었습니다.", updatedProduct);
     }
 
@@ -76,5 +74,16 @@ public class ProductService {
     // 엔티티 저장
     private ProductEntity saveProduct(ProductEntity productEntity) {
         return productRepository.save(productEntity);
+    }
+
+    // ID로 제품 찾기
+    private ProductEntity findProductById(Long id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorMsg.PRODUCT_NOT_FOUND));
+    }
+
+    // 제품 엔티티 업데이트
+    private void updateProductEntity(ProductEntity existingProduct, ProductUpdateRequest productUpdateRequest) {
+        existingProduct.updateFromRequest(productUpdateRequest);
     }
 }
