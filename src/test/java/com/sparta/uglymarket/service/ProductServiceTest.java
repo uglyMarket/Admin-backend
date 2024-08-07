@@ -60,4 +60,18 @@ class ProductServiceTest {
         assertEquals(productEntity, response.getProduct());
         verify(productRepository).save(productEntity);
     }
+    @Test
+    void testUpdateProduct() {
+        // given
+        when(productRepository.findById(anyLong())).thenReturn(Optional.of(productEntity));
+        when(productRepository.save(any(ProductEntity.class))).thenReturn(productEntity);
+
+        // when
+        ProductUpdateResponse response = productService.updateProduct(1L, productUpdateRequest);
+
+        // then
+        assertEquals("상품이 성공적으로 업데이트되었습니다.", response.getMessage());
+        assertEquals(productEntity, response.getProduct());
+        verify(productRepository).save(productEntity);
+    }
 }
