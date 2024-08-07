@@ -189,4 +189,25 @@ class AdminServiceTest {
         assertEquals("Bearer refreshToken", response.getHeaders().getFirst("Refresh-Token"));
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
+
+    @Test
+    void testAuthenticateUser() {
+        // given
+        when(adminLoginRequest.getPhoneNumber()).thenReturn("01012345678");
+        when(adminLoginRequest.getPassword()).thenReturn("password");
+        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.of(adminEntity));
+        when(passwordUtil.matches(anyString(), anyString())).thenReturn(true);
+        when(tokenService.generateAccessToken(anyString())).thenReturn("accessToken");
+        when(tokenService.generateRefreshToken(anyString())).thenReturn("refreshToken");
+
+        // when
+        ResponseEntity<AdminLoginResponse> response = adminService.login(adminLoginRequest);
+
+        // then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("로그인 성공!", response.getBody().getMessage());
+        assertEquals("Bearer accessToken", response.getHeaders().getFirst("Authorization"));
+        assertEquals("Bearer refreshToken", response.getHeaders().getFirst("Refresh-Token"));
+    }
 }
