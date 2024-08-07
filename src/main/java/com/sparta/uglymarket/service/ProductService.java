@@ -46,9 +46,8 @@ public class ProductService {
 
     // 특정 상품 조회
     public ProductGetResponse getProductResponse(Long id) {
-        return productRepository.findById(id)
-                .map(product -> new ProductGetResponse("상품 조회 성공", product))
-                .orElseThrow(() -> new CustomException(ErrorMsg.PRODUCT_NOT_FOUND));
+        ProductEntity product = findProductById(id);
+        return convertToProductGetResponse(product);
     }
 
     // 상품 삭제
@@ -97,5 +96,10 @@ public class ProductService {
             productsGetResponseList.add(new ProductsGetResponse(product));
         }
         return productsGetResponseList;
+    }
+
+    // 제품 엔티티를 ProductGetResponse로 변환
+    private ProductGetResponse convertToProductGetResponse(ProductEntity product) {
+        return new ProductGetResponse("상품 조회 성공", product);
     }
 }
