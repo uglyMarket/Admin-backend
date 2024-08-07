@@ -179,4 +179,17 @@ class TokenServiceTest {
         assertTrue(responseContent.contains("newAccessToken"));
         assertTrue(responseContent.contains("refreshToken"));
     }
+
+    @Test
+    void testRefreshToken_MissingAuthorizationHeader() {
+        // given
+        when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(null);
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            tokenService.refreshToken(request, response);
+        });
+
+        assertEquals(ErrorMsg.MISSING_AUTHORIZATION_HEADER.getDetails(), exception.getMessage());
+    }
 }
