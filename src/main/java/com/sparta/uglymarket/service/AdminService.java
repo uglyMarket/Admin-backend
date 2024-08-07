@@ -60,19 +60,12 @@ public class AdminService {
 
     // 회원 정보 수정
     public AdminUpdateResponse updateAdmin(Long id, AdminUpdateRequest adminUpdateRequest) {
-        AdminEntity admin = adminRepository.findById(id)
-                .orElseThrow(() -> new CustomException(ErrorMsg.ADMIN_NOT_FOUND));
-
-        // 전화번호 중복 체크
-        if (!admin.getPhoneNumber().equals(adminUpdateRequest.getPhoneNumber()) &&
-                adminRepository.findByPhoneNumber(adminUpdateRequest.getPhoneNumber()).isPresent()) {
-            throw new CustomException(ErrorMsg.DUPLICATE_PHONE_NUMBER);
-        }
-
-        admin.update(adminUpdateRequest);
-        adminRepository.save(admin);
+        AdminEntity admin = findAdminById(id);
+        checkForDuplicatePhoneNumberIfChanged(admin, adminUpdateRequest.getPhoneNumber());
+        updateAdminEntity(admin, adminUpdateRequest);
         return new AdminUpdateResponse("회원 정보 수정 성공!", admin.getRole().name());
     }
+
 
     // 로그아웃
     public LogoutResponse logout(String token) {
@@ -122,5 +115,25 @@ public class AdminService {
         headers.add("Authorization", "Bearer " + token);
         headers.add("Refresh-Token", "Bearer " + refreshToken);
         return headers;
+    }
+
+    // ID로 관리자 엔티티를 찾고, 없으면 예외 발생
+    private AdminEntity findAdminById(Long id) {
+        return adminRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorMsg.ADMIN_NOT_FOUND));
+    }
+
+    // 전화번호가 변경된 경우 중복 체크
+    private void checkForDuplicatePhoneNumberIfChanged(AdminEntity admin, String newPhoneNumber) {
+        if (!admin.getPhoneNumber().equals(newPhoneNumber) &&
+                adminRepository.findByPhoneNumber(newPhoneNumber).isPresent()) {
+            throw new CustomException(ErrorMsg.DUPLICATE_PHONE_NUMBER);
+        }
+    }
+
+    // 관리자 엔티티 업데이트
+    private void updateAdminEntity(AdminEntity admin, AdminUpdateRequest adminUpdateRequest) {
+        admin.update(adminUpdateRequest);
+        adminRepository.save(admin);
     }
 }
