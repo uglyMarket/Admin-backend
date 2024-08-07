@@ -24,13 +24,15 @@ public class AdminService {
 
     private final AdminRepository adminRepository;
     private final JwtUtil jwtUtil;
+    private final TokenService tokenService;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordUtil passwordUtil;
 
     @Autowired
-    public AdminService(AdminRepository adminRepository, JwtUtil jwtUtil, RefreshTokenRepository refreshTokenRepository, PasswordUtil passwordUtil) {
+    public AdminService(AdminRepository adminRepository, JwtUtil jwtUtil, TokenService tokenService, RefreshTokenRepository refreshTokenRepository, PasswordUtil passwordUtil) {
         this.adminRepository = adminRepository;
         this.jwtUtil = jwtUtil;
+        this.tokenService = tokenService;
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordUtil = passwordUtil;
     }
@@ -43,51 +45,31 @@ public class AdminService {
         return new AdminRegisterResponse("회원가입 성공!", adminEntity.getRole().name());
     }
 
-    private void checkForDuplicatePhoneNumber(String phoneNumber) {
-        if (adminRepository.findByPhoneNumber(phoneNumber).isPresent()) {
-            throw new CustomException(ErrorMsg.DUPLICATE_PHONE_NUMBER);
-        }
-    }
-
-    private AdminEntity createAdminEntity(AdminRegisterRequest adminRegisterRequest) {
-        AdminEntity adminEntity = new AdminEntity(adminRegisterRequest);
-        String encodedPassword = passwordUtil.encodePassword(adminRegisterRequest.getPassword());
-        adminEntity.setPassword(encodedPassword);
-        adminEntity.setRole(Role.ROLE_ADMIN);
-        return adminEntity;
-    }
-
-    // 로그인
-    public ResponseEntity<AdminLoginResponse> login(AdminLoginRequest requestDto) {
-        AdminEntity admin = adminRepository.findByPhoneNumber(requestDto.getPhoneNumber())
-                .orElseThrow(() -> new CustomException(ErrorMsg.PHONE_NUMBER_NOT_FOUND));
-
-        if (!passwordUtil.matches(requestDto.getPassword(), admin.getPassword())) {
-            throw new CustomException(ErrorMsg.INVALID_PASSWORD);
-        }
-
-        String token = jwtUtil.generateAccessToken(admin.getPhoneNumber());
-        String refreshToken = jwtUtil.generateRefreshToken(admin.getPhoneNumber());
+    // 관리자 로그인 메서드
+    public ResponseEntity<AdminLoginResponse> login(AdminLoginRequest adminLoginRequest) {
+        AdminEntity admin = authenticateUser(adminLoginRequest);
+        String token = tokenService.generateAccessToken(admin.getPhoneNumber());
+        String refreshToken = tokenService.generateRefreshToken(admin.getPhoneNumber());
+        tokenService.saveToken(admin, refreshToken);
+        HttpHeaders headers = createHeaders(token, refreshToken);
 
         AdminLoginResponse responseDto = new AdminLoginResponse("로그인 성공!");
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + token);
-        headers.add("Refresh-Token", "Bearer " + refreshToken);
-
         return new ResponseEntity<>(responseDto, headers, HttpStatus.OK);
     }
 
+
     // 회원 정보 수정
-    public AdminUpdateResponse updateAdmin(Long id, AdminUpdateRequest adminRequest) {
+    public AdminUpdateResponse updateAdmin(Long id, AdminUpdateRequest adminUpdateRequest) {
         AdminEntity admin = adminRepository.findById(id)
                 .orElseThrow(() -> new CustomException(ErrorMsg.ADMIN_NOT_FOUND));
 
-        if (!admin.getPhoneNumber().equals(adminRequest.getPhoneNumber()) &&
-                adminRepository.findByPhoneNumber(adminRequest.getPhoneNumber()).isPresent()) {
+        // 전화번호 중복 체크
+        if (!admin.getPhoneNumber().equals(adminUpdateRequest.getPhoneNumber()) &&
+                adminRepository.findByPhoneNumber(adminUpdateRequest.getPhoneNumber()).isPresent()) {
             throw new CustomException(ErrorMsg.DUPLICATE_PHONE_NUMBER);
         }
 
-        admin.update(adminRequest);
+        admin.update(adminUpdateRequest);
         adminRepository.save(admin);
         return new AdminUpdateResponse("회원 정보 수정 성공!", admin.getRole().name());
     }
@@ -98,6 +80,7 @@ public class AdminService {
         adminRepository.findByPhoneNumber(phoneNumber)
                 .orElseThrow(() -> new CustomException(ErrorMsg.PHONE_NUMBER_NOT_FOUND));
 
+        // 액세스 토큰 무효화
         jwtUtil.revokeToken(token);
         List<RefreshToken> refreshTokens = refreshTokenRepository.findByPhoneNumber(phoneNumber);
         refreshTokens.forEach(refreshToken -> {
@@ -105,5 +88,39 @@ public class AdminService {
         });
 
         return new LogoutResponse("로그아웃 성공!");
+    }
+
+    // 전화번호 중복 체크
+    private void checkForDuplicatePhoneNumber(String phoneNumber) {
+        if (adminRepository.findByPhoneNumber(phoneNumber).isPresent()) {
+            throw new CustomException(ErrorMsg.DUPLICATE_PHONE_NUMBER);
+        }
+    }
+
+    // AdminRegisterRequest를 AdminEntity로 변환하고 비밀번호를 암호화하여 엔티티 생성
+    private AdminEntity createAdminEntity(AdminRegisterRequest adminRegisterRequest) {
+        AdminEntity adminEntity = new AdminEntity(adminRegisterRequest);
+        String encodedPassword = passwordUtil.encodePassword(adminRegisterRequest.getPassword());
+        adminEntity.setPassword(encodedPassword);
+        adminEntity.setRole(Role.ROLE_ADMIN);
+        return adminEntity;
+    }
+
+    // 사용자 인증 메서드
+    private AdminEntity authenticateUser(AdminLoginRequest adminLoginRequest) {
+        AdminEntity admin = adminRepository.findByPhoneNumber(adminLoginRequest.getPhoneNumber())
+                .orElseThrow(() -> new CustomException(ErrorMsg.PHONE_NUMBER_NOT_FOUND));
+        if (!passwordUtil.matches(adminLoginRequest.getPassword(), admin.getPassword())) {
+            throw new CustomException(ErrorMsg.INVALID_PASSWORD);
+        }
+        return admin;
+    }
+
+    // 헤더 생성 메서드
+    private HttpHeaders createHeaders(String token, String refreshToken) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + token);
+        headers.add("Refresh-Token", "Bearer " + refreshToken);
+        return headers;
     }
 }
