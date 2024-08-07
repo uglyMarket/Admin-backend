@@ -23,8 +23,8 @@ public class ProductService {
 
     // 상품 생성
     public ProductCreateResponse createProduct(ProductCreateRequest productCreateRequest) {
-        ProductEntity productEntity = new ProductEntity(productCreateRequest);
-        ProductEntity savedProduct = productRepository.save(productEntity);
+        ProductEntity productEntity = convertToEntity(productCreateRequest);
+        ProductEntity savedProduct = saveProduct(productEntity);
         return new ProductCreateResponse("상품이 성공적으로 생성되었습니다.", savedProduct);
     }
 
@@ -68,4 +68,13 @@ public class ProductService {
         return new ProductDeleteResponse("상품이 성공적으로 삭제되었습니다.");
     }
 
+    // DTO를 엔티티로 변환
+    private ProductEntity convertToEntity(ProductCreateRequest productCreateRequest) {
+        return new ProductEntity(productCreateRequest);
+    }
+
+    // 엔티티 저장
+    private ProductEntity saveProduct(ProductEntity productEntity) {
+        return productRepository.save(productEntity);
+    }
 }
