@@ -74,4 +74,17 @@ class ProductServiceTest {
         assertEquals(productEntity, response.getProduct());
         verify(productRepository).save(productEntity);
     }
+
+    @Test
+    void testUpdateProduct_ThrowsException() {
+        // given
+        when(productRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            productService.updateProduct(1L, productUpdateRequest);
+        });
+
+        assertEquals(ErrorMsg.PRODUCT_NOT_FOUND.getDetails(), exception.getMessage());
+    }
 }
