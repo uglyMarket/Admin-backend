@@ -84,4 +84,16 @@ class TokenServiceTest {
         // then
         assertEquals("accessToken", accessToken);
     }
+
+    @Test
+    void testGenerateRefreshToken() {
+        // given
+        when(tokenUtil.generateRefreshToken(anyString())).thenReturn("refreshToken");
+
+        // when
+        String refreshToken = tokenService.generateRefreshToken("01012345678");
+
+        // then
+        assertEquals("refreshToken", refreshToken);
+    }
 }
