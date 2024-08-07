@@ -34,20 +34,13 @@ class AdminEntityTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        adminEntity = mock(AdminEntity.class);
-
-        when(adminEntity.getPhoneNumber()).thenReturn("010-1234-5678");
-        when(adminEntity.getPassword()).thenReturn("password");
-        when(adminEntity.getRole()).thenReturn(Role.ROLE_ADMIN);
-        when(adminEntity.getFarmName()).thenReturn("Farm Name");
-        when(adminEntity.getIntroMessage()).thenReturn("Intro Message");
-        when(adminEntity.getProfileImageUrl()).thenReturn("http://example.com/profile.jpg");
-        when(adminEntity.getLeaderName()).thenReturn("Jane Doe");
-        when(adminEntity.getBusinessId()).thenReturn("1234567890");
-        when(adminEntity.getOpeningDate()).thenReturn("2023-01-01");
-        when(adminEntity.getMinOrderAmount()).thenReturn(10000L);
+        adminEntity = new AdminEntity(
+                1L, "010-1234-5678", "password",
+                Role.ROLE_ADMIN, "Farm Name",
+                "Intro Message", "http://example.com/profile.jpg",
+                "Jane Doe", "1234567890",
+                "2023-01-01", 10000L);
     }
-
     @Test
     void updateAdmin() {
         // given
@@ -63,6 +56,13 @@ class AdminEntityTest {
         when(request.getOpeningDate()).thenReturn("2024-01-01");
         when(request.getMinOrderAmount()).thenReturn(20000L);
 
+        AdminEntity adminEntity = new AdminEntity(
+                id, "010-1234-5678", "password",
+                Role.ROLE_ADMIN, "Farm Name",
+                "Intro Message", "http://example.com/profile.jpg",
+                "Jane Doe", "1234567890",
+                "2023-01-01", 10000L);
+
         when(adminRepository.findById(eq(id))).thenReturn(Optional.of(adminEntity));
         when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.empty());
 
@@ -70,7 +70,16 @@ class AdminEntityTest {
         adminService.updateAdmin(id, request);
 
         // then
-        verify(adminEntity).update(request);
+        assertEquals("010-9876-5432", adminEntity.getPhoneNumber());
+        assertEquals("newpassword", adminEntity.getPassword());
+        assertEquals("Updated Farm", adminEntity.getFarmName());
+        assertEquals("Updated Message", adminEntity.getIntroMessage());
+        assertEquals("http://example.com/updated.jpg", adminEntity.getProfileImageUrl());
+        assertEquals("John Doe", adminEntity.getLeaderName());
+        assertEquals("0987654321", adminEntity.getBusinessId());
+        assertEquals("2024-01-01", adminEntity.getOpeningDate());
+        assertEquals(20000L, adminEntity.getMinOrderAmount());
+
         verify(adminRepository, times(1)).save(adminEntity);
     }
 
@@ -84,5 +93,28 @@ class AdminEntityTest {
         // when & then
         CustomException exception = assertThrows(CustomException.class, () -> adminService.updateAdmin(id, request));
         assertEquals(ErrorMsg.ADMIN_NOT_FOUND.getHttpStatus(), exception.getHttpStatus());
+    }
+    @Test
+    void testSetRole() {
+        // given
+        Role newRole = Role.ROLE_ADMIN;
+
+        // when
+        adminEntity.setRole(newRole);
+
+        // then
+        assertEquals(newRole, adminEntity.getRole());
+    }
+
+    @Test
+    void testSetPassword() {
+        // given
+        String newPassword = "newPassword";
+
+        // when
+        adminEntity.setPassword(newPassword);
+
+        // then
+        assertEquals(newPassword, adminEntity.getPassword());
     }
 }
