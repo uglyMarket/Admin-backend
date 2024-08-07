@@ -192,4 +192,18 @@ class TokenServiceTest {
 
         assertEquals(ErrorMsg.MISSING_AUTHORIZATION_HEADER.getDetails(), exception.getMessage());
     }
+
+    @Test
+    void testRefreshToken_UnauthorizedMember() {
+        // given
+        when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer refreshToken");
+        when(tokenUtil.getPhoneNumberFromToken(anyString())).thenReturn(null);
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            tokenService.refreshToken(request, response);
+        });
+
+        assertEquals(ErrorMsg.UNAUTHORIZED_MEMBER.getDetails(), exception.getMessage());
+    }
 }
