@@ -27,6 +27,31 @@ public class TokenService {
     private final AdminRepository adminRepository;
     private final RefreshTokenRepository refreshTokenRepository;
 
+    // 액세스 토큰 생성
+    public String generateAccessToken(String phoneNumber) {
+        return tokenUtil.generateAccessToken(phoneNumber);
+    }
+
+    // 리프레시 토큰 생성
+    public String generateRefreshToken(String phoneNumber) {
+        return tokenUtil.generateRefreshToken(phoneNumber);
+    }
+
+    // 전화번호를 토큰에서 추출
+    public String getPhoneNumberFromToken(String token) {
+        return tokenUtil.getPhoneNumberFromToken(token);
+    }
+
+    // 토큰 유효성 검증
+    public boolean validateToken(String token) {
+        return tokenUtil.validateToken(token);
+    }
+
+    // 토큰을 무효화
+    public void revokeToken(String token) {
+        tokenUtil.revokeToken(token);
+    }
+
     // 새로운 리프레시 토큰을 저장합니다.
     public void saveToken(AdminEntity admin, String refreshToken) {
         revokeAllUserTokens(admin); // 무효화 먼저 실행
