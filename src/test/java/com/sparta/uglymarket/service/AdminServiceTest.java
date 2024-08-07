@@ -232,4 +232,18 @@ class AdminServiceTest {
         assertEquals("Bearer " + token, headers.getFirst("Authorization"));
         assertEquals("Bearer " + refreshToken, headers.getFirst("Refresh-Token"));
     }
+
+    @Test
+    void testCheckForDuplicatePhoneNumberIfChanged() {
+        // given
+        when(adminRepository.findById(anyLong())).thenReturn(Optional.of(adminEntity));
+        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.of(adminEntity));
+        when(adminUpdateRequest.getPhoneNumber()).thenReturn("newPhoneNumber");
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            adminService.updateAdmin(1L, adminUpdateRequest);
+        });
+        assertEquals(ErrorMsg.DUPLICATE_PHONE_NUMBER.getDetails(), exception.getMessage());
+    }
 }
