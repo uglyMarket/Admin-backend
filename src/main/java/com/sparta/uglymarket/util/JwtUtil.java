@@ -27,7 +27,7 @@ public class JwtUtil implements ITokenUtil {
     }
 
     // 액세스 토큰 만료 시간 (1시간)
-    private final int accessTokenExpiration = 3600;
+    private final int accessTokenExpiration = 360000;
     // 리프레시 토큰 만료 시간 (2주)
     private final int refreshTokenExpiration = 1209600;
 
