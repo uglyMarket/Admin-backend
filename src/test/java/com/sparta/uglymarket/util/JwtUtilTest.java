@@ -97,4 +97,17 @@ class JwtUtilTest {
         });
         assertEquals(ErrorMsg.INVALID_TOKEN.getDetails(), exception.getMessage());
     }
+
+    @Test
+    void testValidateToken() {
+        // given
+        String phoneNumber = "01012345678";
+        String token = jwtUtil.generateAccessToken(phoneNumber);
+
+        // when
+        boolean isValid = jwtUtil.validateToken(token);
+
+        // then
+        assertTrue(isValid);
+    }
 }
