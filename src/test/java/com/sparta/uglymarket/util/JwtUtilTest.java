@@ -122,4 +122,20 @@ class JwtUtilTest {
         // then
         assertFalse(isValid);
     }
+
+    @Test
+    void testRevokeToken() {
+        // given
+        String token = "refreshToken";
+        RefreshToken refreshToken = new RefreshToken();
+        when(refreshTokenRepository.findByToken(token)).thenReturn(java.util.Optional.of(refreshToken));
+
+        // when
+        jwtUtil.revokeToken(token);
+
+        // then
+        assertTrue(refreshToken.isExpired());
+        assertTrue(refreshToken.isRevoked());
+        verify(refreshTokenRepository).save(refreshToken);
+    }
 }
