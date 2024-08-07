@@ -8,34 +8,22 @@ import com.sparta.uglymarket.exception.CustomException;
 import com.sparta.uglymarket.exception.ErrorMsg;
 import com.sparta.uglymarket.repository.AdminRepository;
 import com.sparta.uglymarket.repository.RefreshTokenRepository;
-import com.sparta.uglymarket.util.JwtUtil;
 import com.sparta.uglymarket.util.PasswordUtil;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
+@AllArgsConstructor
 @Service
 public class AdminService {
 
     private final AdminRepository adminRepository;
-    private final JwtUtil jwtUtil;
     private final TokenService tokenService;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordUtil passwordUtil;
-
-    @Autowired
-    public AdminService(AdminRepository adminRepository, JwtUtil jwtUtil, TokenService tokenService, RefreshTokenRepository refreshTokenRepository, PasswordUtil passwordUtil) {
-        this.adminRepository = adminRepository;
-        this.jwtUtil = jwtUtil;
-        this.tokenService = tokenService;
-        this.refreshTokenRepository = refreshTokenRepository;
-        this.passwordUtil = passwordUtil;
-    }
 
     // 회원 가입
     public AdminRegisterResponse register(AdminRegisterRequest adminRegisterRequest) {
@@ -57,37 +45,26 @@ public class AdminService {
         return new ResponseEntity<>(responseDto, headers, HttpStatus.OK);
     }
 
-
     // 회원 정보 수정
     public AdminUpdateResponse updateAdmin(Long id, AdminUpdateRequest adminUpdateRequest) {
-        AdminEntity admin = adminRepository.findById(id)
-                .orElseThrow(() -> new CustomException(ErrorMsg.ADMIN_NOT_FOUND));
-
-        // 전화번호 중복 체크
-        if (!admin.getPhoneNumber().equals(adminUpdateRequest.getPhoneNumber()) &&
-                adminRepository.findByPhoneNumber(adminUpdateRequest.getPhoneNumber()).isPresent()) {
-            throw new CustomException(ErrorMsg.DUPLICATE_PHONE_NUMBER);
-        }
-
-        admin.update(adminUpdateRequest);
-        adminRepository.save(admin);
+        AdminEntity admin = findAdminById(id);
+        checkForDuplicatePhoneNumberIfChanged(admin, adminUpdateRequest.getPhoneNumber());
+        updateAdminEntity(admin, adminUpdateRequest);
         return new AdminUpdateResponse("회원 정보 수정 성공!", admin.getRole().name());
     }
 
     // 로그아웃
     public LogoutResponse logout(String token) {
-        String phoneNumber = jwtUtil.getPhoneNumberFromToken(token);
+        String phoneNumber = tokenService.getPhoneNumberFromToken(token);
+        validatePhoneNumber(phoneNumber);
+        invalidateTokens(phoneNumber, token);
+        return new LogoutResponse("로그아웃 성공!");
+    }
+
+    // 전화번호 유효성 검사
+    private void validatePhoneNumber(String phoneNumber) {
         adminRepository.findByPhoneNumber(phoneNumber)
                 .orElseThrow(() -> new CustomException(ErrorMsg.PHONE_NUMBER_NOT_FOUND));
-
-        // 액세스 토큰 무효화
-        jwtUtil.revokeToken(token);
-        List<RefreshToken> refreshTokens = refreshTokenRepository.findByPhoneNumber(phoneNumber);
-        refreshTokens.forEach(refreshToken -> {
-            jwtUtil.revokeToken(refreshToken.getToken());
-        });
-
-        return new LogoutResponse("로그아웃 성공!");
     }
 
     // 전화번호 중복 체크
@@ -122,5 +99,34 @@ public class AdminService {
         headers.add("Authorization", "Bearer " + token);
         headers.add("Refresh-Token", "Bearer " + refreshToken);
         return headers;
+    }
+
+    // ID로 관리자 엔티티를 찾고, 없으면 예외 발생
+    private AdminEntity findAdminById(Long id) {
+        return adminRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorMsg.ADMIN_NOT_FOUND));
+    }
+
+    // 전화번호가 변경된 경우 중복 체크
+    private void checkForDuplicatePhoneNumberIfChanged(AdminEntity admin, String newPhoneNumber) {
+        if (!admin.getPhoneNumber().equals(newPhoneNumber) &&
+                adminRepository.findByPhoneNumber(newPhoneNumber).isPresent()) {
+            throw new CustomException(ErrorMsg.DUPLICATE_PHONE_NUMBER);
+        }
+    }
+
+    // 관리자 엔티티 업데이트
+    private void updateAdminEntity(AdminEntity admin, AdminUpdateRequest adminUpdateRequest) {
+        admin.update(adminUpdateRequest);
+        adminRepository.save(admin);
+    }
+
+    // 토큰 무효화
+    private void invalidateTokens(String phoneNumber, String token) {
+        // 액세스 토큰 무효화
+        tokenService.revokeToken(token);
+        // 모든 리프레시 토큰 무효화
+        List<RefreshToken> refreshTokens = refreshTokenRepository.findByPhoneNumber(phoneNumber);
+        refreshTokens.forEach(refreshToken -> tokenService.revokeToken(refreshToken.getToken()));
     }
 }
