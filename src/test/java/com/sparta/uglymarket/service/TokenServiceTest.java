@@ -108,4 +108,16 @@ class TokenServiceTest {
         // then
         assertEquals("01012345678", phoneNumber);
     }
+
+    @Test
+    void testValidateToken() {
+        // given
+        when(tokenUtil.validateToken(anyString())).thenReturn(true);
+
+        // when
+        boolean isValid = tokenService.validateToken("token");
+
+        // then
+        assertTrue(isValid);
+    }
 }
