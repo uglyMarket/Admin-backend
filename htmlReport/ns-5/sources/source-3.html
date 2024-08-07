@@ -1,0 +1,214 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RefreshToken</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.sparta.uglymarket.entity</a>
+</div>
+
+<h1>Coverage Summary for Class: RefreshToken (com.sparta.uglymarket.entity)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RefreshToken</td>
+<td class="coverageStat">
+  <span class="percent">
+    18.2%
+  </span>
+  <span class="absValue">
+    (2/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    15.4%
+  </span>
+  <span class="absValue">
+    (2/13)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">RefreshToken$HibernateInstantiator$AJl281NA</td>
+  </tr>
+  <tr>
+    <td class="name">RefreshToken$HibernateProxy$GL87Bpt1</td>
+  </tr>
+  <tr>
+    <td class="name">RefreshToken$MockitoMock$0Bb29U0B</td>
+  </tr>
+  <tr>
+    <td class="name">RefreshToken$MockitoMock$0Bb29U0B$auxiliary$02XcRzhv</td>
+  </tr>
+  <tr>
+    <td class="name">RefreshToken$MockitoMock$0Bb29U0B$auxiliary$4Yd2valb</td>
+  </tr>
+  <tr>
+    <td class="name">RefreshToken$MockitoMock$0Bb29U0B$auxiliary$EXC5Dzva</td>
+  </tr>
+  <tr>
+    <td class="name">RefreshToken$MockitoMock$0Bb29U0B$auxiliary$F5uNz3Lw</td>
+  </tr>
+  <tr>
+    <td class="name">RefreshToken$MockitoMock$0Bb29U0B$auxiliary$FsCywVXG</td>
+  </tr>
+  <tr>
+    <td class="name">RefreshToken$MockitoMock$0Bb29U0B$auxiliary$JH3d2m3m</td>
+  </tr>
+  <tr>
+    <td class="name">RefreshToken$MockitoMock$0Bb29U0B$auxiliary$LFOeCgkH</td>
+  </tr>
+  <tr>
+    <td class="name">RefreshToken$MockitoMock$0Bb29U0B$auxiliary$q0QvOOJ6</td>
+  </tr>
+  <tr>
+    <td class="name">RefreshToken$MockitoMock$0Bb29U0B$auxiliary$tgrn15EM</td>
+  </tr>
+  <tr>
+    <td class="name">RefreshToken$MockitoMock$0Bb29U0B$auxiliary$Xy3f8zIv</td>
+  </tr>
+  <tr>
+    <td class="name">RefreshToken$RefreshTokenBuilder</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    16.7%
+  </span>
+  <span class="absValue">
+    (2/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    14.3%
+  </span>
+  <span class="absValue">
+    (2/14)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.sparta.uglymarket.entity;
+&nbsp;
+&nbsp;import jakarta.persistence.*;
+&nbsp;import lombok.AllArgsConstructor;
+&nbsp;import lombok.Builder;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.NoArgsConstructor;
+&nbsp;
+&nbsp;@Entity
+&nbsp;@Table(name = &quot;tokens&quot;, schema = &quot;public&quot;)
+&nbsp;@Getter
+<b class="fc">&nbsp;@NoArgsConstructor</b>
+<b class="nc">&nbsp;@AllArgsConstructor</b>
+<b class="nc">&nbsp;@Builder</b>
+&nbsp;public class RefreshToken {
+&nbsp;    @Id
+&nbsp;    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = &quot;token_generator&quot;)
+&nbsp;    @SequenceGenerator(name = &quot;token_generator&quot;, sequenceName = &quot;tokens_seq&quot;, allocationSize = 1)
+<b class="nc">&nbsp;    private Long id;</b>
+&nbsp;
+<b class="nc">&nbsp;    private String phoneNumber;</b>
+&nbsp;
+&nbsp;    private String token;
+&nbsp;
+&nbsp;    @Enumerated(EnumType.STRING)
+<b class="nc">&nbsp;    private TokenType tokenType;</b>
+&nbsp;
+<b class="nc">&nbsp;    private boolean expired;</b>
+&nbsp;
+<b class="nc">&nbsp;    private boolean revoked;</b>
+&nbsp;
+&nbsp;    public void expire() {
+<b class="nc">&nbsp;        this.expired = true;</b>
+<b class="nc">&nbsp;    }</b>
+&nbsp;
+&nbsp;    public void revoke() {
+<b class="nc">&nbsp;        this.revoked = true;</b>
+<b class="nc">&nbsp;    }</b>
+&nbsp;
+&nbsp;    // 토큰 값 반환 메서드
+&nbsp;    public String getToken() {
+<b class="fc">&nbsp;        return this.token;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-08-06 19:51</div>
+</div>
+</body>
+</html>

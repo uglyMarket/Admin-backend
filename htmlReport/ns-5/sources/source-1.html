@@ -1,0 +1,260 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AdminEntity</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.sparta.uglymarket.entity</a>
+</div>
+
+<h1>Coverage Summary for Class: AdminEntity (com.sparta.uglymarket.entity)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AdminEntity</td>
+<td class="coverageStat">
+  <span class="percent">
+    88.2%
+  </span>
+  <span class="absValue">
+    (15/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    94.9%
+  </span>
+  <span class="absValue">
+    (37/39)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AdminEntity$HibernateInstantiator$TBNFhMdU</td>
+  </tr>
+  <tr>
+    <td class="name">AdminEntity$HibernateProxy$Ki8yWRRI</td>
+  </tr>
+  <tr>
+    <td class="name">AdminEntity$MockitoMock$qXTIAz6X</td>
+  </tr>
+  <tr>
+    <td class="name">AdminEntity$MockitoMock$qXTIAz6X$auxiliary$6YPdanZr</td>
+  </tr>
+  <tr>
+    <td class="name">AdminEntity$MockitoMock$qXTIAz6X$auxiliary$A3q1lAOE</td>
+  </tr>
+  <tr>
+    <td class="name">AdminEntity$MockitoMock$qXTIAz6X$auxiliary$b7poe2wg</td>
+  </tr>
+  <tr>
+    <td class="name">AdminEntity$MockitoMock$qXTIAz6X$auxiliary$cN7av7Fd</td>
+  </tr>
+  <tr>
+    <td class="name">AdminEntity$MockitoMock$qXTIAz6X$auxiliary$cXnqPqFz</td>
+  </tr>
+  <tr>
+    <td class="name">AdminEntity$MockitoMock$qXTIAz6X$auxiliary$DwxioMG9</td>
+  </tr>
+  <tr>
+    <td class="name">AdminEntity$MockitoMock$qXTIAz6X$auxiliary$ezYZcEfV</td>
+  </tr>
+  <tr>
+    <td class="name">AdminEntity$MockitoMock$qXTIAz6X$auxiliary$ns1YpPuF</td>
+  </tr>
+  <tr>
+    <td class="name">AdminEntity$MockitoMock$qXTIAz6X$auxiliary$RjvLWSQ9</td>
+  </tr>
+  <tr>
+    <td class="name">AdminEntity$MockitoMock$qXTIAz6X$auxiliary$rmIUDXlj</td>
+  </tr>
+  <tr>
+    <td class="name">AdminEntity$MockitoMock$qXTIAz6X$auxiliary$SSZ7pRZr</td>
+  </tr>
+  <tr>
+    <td class="name">AdminEntity$MockitoMock$qXTIAz6X$auxiliary$SZzpRvcE</td>
+  </tr>
+  <tr>
+    <td class="name">AdminEntity$MockitoMock$qXTIAz6X$auxiliary$Tc9qfoju</td>
+  </tr>
+  <tr>
+    <td class="name">AdminEntity$MockitoMock$qXTIAz6X$auxiliary$tN5eOjP1</td>
+  </tr>
+  <tr>
+    <td class="name">AdminEntity$MockitoMock$qXTIAz6X$auxiliary$TQCfEWiT</td>
+  </tr>
+  <tr>
+    <td class="name">AdminEntity$MockitoMock$qXTIAz6X$auxiliary$z0cfMg4I</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    88.2%
+  </span>
+  <span class="absValue">
+    (15/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    94.9%
+  </span>
+  <span class="absValue">
+    (37/39)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.sparta.uglymarket.entity;
+&nbsp;
+&nbsp;import com.sparta.uglymarket.dto.AdminRegisterRequest;
+&nbsp;import jakarta.persistence.*;
+&nbsp;import lombok.AllArgsConstructor;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.NoArgsConstructor;
+&nbsp;
+&nbsp;@Entity
+&nbsp;@Table(name = &quot;admin&quot;)
+<b class="fc">&nbsp;@NoArgsConstructor</b>
+<b class="nc">&nbsp;@AllArgsConstructor</b>
+&nbsp;@Getter
+&nbsp;public class AdminEntity {
+&nbsp;
+&nbsp;    @Id
+&nbsp;    @GeneratedValue(strategy = GenerationType.IDENTITY)
+<b class="nc">&nbsp;    private Long adminId;</b>
+&nbsp;
+&nbsp;    @Column(nullable = false, unique = true)
+<b class="fc">&nbsp;    private String phoneNumber;</b>
+&nbsp;
+&nbsp;    @Column(nullable = false)
+<b class="fc">&nbsp;    private String password;</b>
+&nbsp;
+&nbsp;    @Enumerated(EnumType.STRING)
+&nbsp;    @Column(nullable = false)
+<b class="fc">&nbsp;    private Role role;</b>
+&nbsp;
+&nbsp;    @Column(nullable = false, unique = true)
+<b class="fc">&nbsp;    private String farmName;</b>
+&nbsp;
+&nbsp;    @Column(nullable = false)
+<b class="fc">&nbsp;    private String introMessage;</b>
+&nbsp;
+&nbsp;    @Column(nullable = false)
+<b class="fc">&nbsp;    private String profileImageUrl;</b>
+&nbsp;
+&nbsp;    @Column(nullable = false)
+<b class="fc">&nbsp;    private String leaderName;</b>
+&nbsp;
+&nbsp;    @Column(nullable = false)
+<b class="fc">&nbsp;    private String businessId;</b>
+&nbsp;
+&nbsp;    @Column(nullable = false)
+<b class="fc">&nbsp;    private String openingDate;</b>
+&nbsp;
+&nbsp;    @Column(nullable = false)
+<b class="fc">&nbsp;    private Long minOrderAmount;</b>
+&nbsp;
+<b class="fc">&nbsp;    public AdminEntity(AdminRegisterRequest adminRegisterRequest) {</b>
+<b class="fc">&nbsp;        this.phoneNumber = adminRegisterRequest.getPhoneNumber();</b>
+<b class="fc">&nbsp;        this.password = adminRegisterRequest.getPassword();</b>
+<b class="fc">&nbsp;        this.role = Role.ROLE_ADMIN;</b>
+<b class="fc">&nbsp;        this.farmName = adminRegisterRequest.getFarmName();</b>
+<b class="fc">&nbsp;        this.introMessage = adminRegisterRequest.getIntroMessage();</b>
+<b class="fc">&nbsp;        this.profileImageUrl = adminRegisterRequest.getProfileImageUrl();</b>
+<b class="fc">&nbsp;        this.leaderName = adminRegisterRequest.getLeaderName();</b>
+<b class="fc">&nbsp;        this.businessId = adminRegisterRequest.getBusinessId();</b>
+<b class="fc">&nbsp;        this.openingDate = adminRegisterRequest.getOpeningDate();</b>
+<b class="fc">&nbsp;        this.minOrderAmount = adminRegisterRequest.getMinOrderAmount();</b>
+<b class="fc">&nbsp;    }</b>
+&nbsp;
+&nbsp;    // 엔티티 수정 메서드
+&nbsp;    public void update(AdminRegisterRequest adminRegisterRequest) {
+<b class="fc">&nbsp;        this.phoneNumber = adminRegisterRequest.getPhoneNumber();</b>
+<b class="fc">&nbsp;        this.password = adminRegisterRequest.getPassword();</b>
+<b class="fc">&nbsp;        this.farmName = adminRegisterRequest.getFarmName();</b>
+<b class="fc">&nbsp;        this.introMessage = adminRegisterRequest.getIntroMessage();</b>
+<b class="fc">&nbsp;        this.profileImageUrl = adminRegisterRequest.getProfileImageUrl();</b>
+<b class="fc">&nbsp;        this.leaderName = adminRegisterRequest.getLeaderName();</b>
+<b class="fc">&nbsp;        this.businessId = adminRegisterRequest.getBusinessId();</b>
+<b class="fc">&nbsp;        this.openingDate = adminRegisterRequest.getOpeningDate();</b>
+<b class="fc">&nbsp;        this.minOrderAmount = adminRegisterRequest.getMinOrderAmount();</b>
+<b class="fc">&nbsp;    }</b>
+&nbsp;//    public Role getRole() {
+&nbsp;//        return role;
+&nbsp;//    }
+&nbsp;
+&nbsp;    public void setRole(Role role) {
+<b class="fc">&nbsp;        this.role = role;</b>
+<b class="fc">&nbsp;    }</b>
+&nbsp;
+&nbsp;    // 비밀번호 설정 메서드
+&nbsp;    public void setPassword(String password) {
+<b class="fc">&nbsp;        this.password = password;</b>
+<b class="fc">&nbsp;    }</b>
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-08-06 19:51</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,203 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > JwtAuthenticationFilter</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.sparta.uglymarket.filter</a>
+</div>
+
+<h1>Coverage Summary for Class: JwtAuthenticationFilter (com.sparta.uglymarket.filter)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JwtAuthenticationFilter</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (3/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    70%
+  </span>
+  <span class="absValue">
+    (21/30)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    97.1%
+  </span>
+  <span class="absValue">
+    (33/34)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.sparta.uglymarket.filter;
+&nbsp;
+&nbsp;import com.sparta.uglymarket.exception.ErrorMsg;
+&nbsp;import com.sparta.uglymarket.service.TokenService;
+&nbsp;import com.sparta.uglymarket.util.JwtUtil;
+&nbsp;import jakarta.servlet.FilterChain;
+&nbsp;import jakarta.servlet.ServletException;
+&nbsp;import jakarta.servlet.http.HttpServletRequest;
+&nbsp;import jakarta.servlet.http.HttpServletResponse;
+&nbsp;import lombok.NonNull;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.web.filter.OncePerRequestFilter;
+&nbsp;
+&nbsp;import java.io.IOException;
+&nbsp;
+<b class="fc">&nbsp;@RequiredArgsConstructor</b>
+&nbsp;public class JwtAuthenticationFilter extends OncePerRequestFilter {
+&nbsp;
+&nbsp;    private final JwtUtil jwtUtil;
+&nbsp;    private final TokenService tokenService;
+&nbsp;
+&nbsp;    // 필터의 주요 로직을 처리하는 메서드입니다.
+&nbsp;    // 모든 HTTP 요청에 대해 JWT 토큰을 검증하고, 유효한 경우 이메일을 요청에 첨부합니다.
+&nbsp;    @Override
+<b class="pc">&nbsp;    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain chain)</b>
+&nbsp;            throws ServletException, IOException {
+&nbsp;
+<b class="fc">&nbsp;        String path = request.getRequestURI();</b>
+&nbsp;
+&nbsp;        // /login 및 /signup 경로는 필터를 거치지 않도록 설정
+<b class="pc">&nbsp;        if (&quot;/api/admin/login&quot;.equals(path) || &quot;/api/admin/register&quot;.equals(path)) {</b>
+<b class="fc">&nbsp;            chain.doFilter(request, response);</b>
+<b class="fc">&nbsp;            return;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Authorization 헤더에서 JWT 토큰 추출
+<b class="fc">&nbsp;        String header = request.getHeader(&quot;Authorization&quot;);</b>
+<b class="fc">&nbsp;        String token = null;</b>
+<b class="fc">&nbsp;        String email = null;</b>
+&nbsp;
+&nbsp;        // 헤더가 &quot;Bearer &quot;로 시작하는지 확인하고 토큰과 이메일을 추출
+<b class="pc">&nbsp;        if (header != null &amp;&amp; header.startsWith(&quot;Bearer &quot;)) {</b>
+<b class="fc">&nbsp;            token = header.substring(7);</b>
+<b class="fc">&nbsp;            email = jwtUtil.getPhoneNumberFromToken(token);</b>
+&nbsp;        } else {
+&nbsp;            // 헤더가 없거나 올바른 형식이 아닌 경우 적절한 응답을 설정
+<b class="fc">&nbsp;            setResponse(response, HttpServletResponse.SC_BAD_REQUEST, ErrorMsg.MISSING_AUTHORIZATION_HEADER);</b>
+<b class="fc">&nbsp;            return;</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        if (email != null &amp;&amp; jwtUtil.validateToken(token)) {</b>
+&nbsp;            // 이메일이 있고 토큰이 유효한 경우, 이메일을 요청에 추가합니다.
+<b class="fc">&nbsp;            request.setAttribute(&quot;email&quot;, email);</b>
+<b class="pc">&nbsp;        } else if (header != null &amp;&amp; header.startsWith(&quot;Bearer &quot;)) {</b>
+&nbsp;            // 토큰이 만료되었거나 유효하지 않은 경우, 적절한 응답을 설정합니다.
+<b class="fc">&nbsp;            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);</b>
+<b class="fc">&nbsp;            response.setContentType(&quot;application/json&quot;);</b>
+<b class="fc">&nbsp;            response.setCharacterEncoding(&quot;UTF-8&quot;);</b>
+&nbsp;
+<b class="pc">&nbsp;            if (jwtUtil.validateToken(token)) {</b>
+&nbsp;                // Access Token이 만료된 경우
+<b class="nc">&nbsp;                response.getWriter().write(String.format(&quot;{\&quot;message\&quot;: \&quot;%s\&quot;}&quot;, ErrorMsg.INVALID_TOKEN.getDetails()));</b>
+&nbsp;            } else {
+&nbsp;                // Refresh Token을 사용하여 재인증 시도
+<b class="fc">&nbsp;                String refreshToken = request.getHeader(&quot;Refresh-Token&quot;);</b>
+<b class="pc">&nbsp;                if (refreshToken != null &amp;&amp; refreshToken.startsWith(&quot;Bearer &quot;) &amp;&amp; jwtUtil.validateToken(refreshToken.substring(7))) {</b>
+<b class="fc">&nbsp;                    jwtUtil.refreshToken(request, response);</b>
+&nbsp;                } else {
+&nbsp;                    // Refresh Token도 만료된 경우
+<b class="fc">&nbsp;                    setResponse(response, HttpServletResponse.SC_UNAUTHORIZED, ErrorMsg.INVALID_TOKEN);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;            // 응답을 보낸 후, 더 이상 요청을 처리하지 않고 메서드를 끝냅니다.
+<b class="fc">&nbsp;            return;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // 다음 필터 또는 서블릿으로 요청을 전달
+<b class="fc">&nbsp;        chain.doFilter(request, response);</b>
+<b class="fc">&nbsp;    }</b>
+&nbsp;
+&nbsp;    private void setResponse(HttpServletResponse response, int status, ErrorMsg errorMsg) throws IOException {
+<b class="fc">&nbsp;        response.setStatus(status);</b>
+<b class="fc">&nbsp;        response.setContentType(&quot;application/json&quot;);</b>
+<b class="fc">&nbsp;        response.setCharacterEncoding(&quot;UTF-8&quot;);</b>
+<b class="fc">&nbsp;        response.getWriter().write(String.format(&quot;{\&quot;message\&quot;: \&quot;%s\&quot;}&quot;, errorMsg.getDetails()));</b>
+<b class="fc">&nbsp;    }</b>
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-08-06 19:51</div>
+</div>
+</body>
+</html>
