@@ -4,6 +4,7 @@ import com.sparta.uglymarket.dto.*;
 import com.sparta.uglymarket.exception.ErrorMsg;
 import com.sparta.uglymarket.entity.ProductEntity;
 import com.sparta.uglymarket.exception.CustomException;
+import com.sparta.uglymarket.factory.ProductFactory;
 import com.sparta.uglymarket.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final ProductFactory productFactory;
 
     // 상품 생성
     public ProductCreateResponse createProduct(ProductCreateRequest productCreateRequest) {
@@ -59,7 +61,7 @@ public class ProductService {
 
     // DTO를 엔티티로 변환
     private ProductEntity convertToEntity(ProductCreateRequest productCreateRequest) {
-        return new ProductEntity(productCreateRequest);
+        return productFactory.createProduct(productCreateRequest);
     }
 
     // 엔티티 저장

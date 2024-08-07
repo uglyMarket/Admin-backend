@@ -1,6 +1,5 @@
 package com.sparta.uglymarket.entity;
 
-import com.sparta.uglymarket.dto.ProductCreateRequest;
 import com.sparta.uglymarket.dto.ProductUpdateRequest;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -35,15 +34,6 @@ public class ProductEntity {
 
     @Column(nullable = false)
     private String category; // 상품 카테고리
-
-    public ProductEntity(ProductCreateRequest productCreateRequest) {
-        this.title = productCreateRequest.getTitle();
-        this.content = productCreateRequest.getContent();
-        this.price = productCreateRequest.getPrice();
-        this.stock = productCreateRequest.getStock();
-        this.imageUrl = productCreateRequest.getImageUrl();
-        this.category = productCreateRequest.getCategory();
-    }
 
     public void updateFromRequest(ProductUpdateRequest productUpdateRequest) {
         this.title = productUpdateRequest.getTitle();
