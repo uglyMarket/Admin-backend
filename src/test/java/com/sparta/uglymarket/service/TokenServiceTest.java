@@ -144,4 +144,17 @@ class TokenServiceTest {
         // then
         verify(refreshTokenRepository).save(any(RefreshToken.class));
     }
+
+    @Test
+    void testRevokeAllUserTokens() {
+        // given
+        when(refreshTokenRepository.findAllValidTokenByPhoneNumber(anyString())).thenReturn(List.of(refreshToken));
+        when(refreshTokenRepository.saveAll(anyList())).thenReturn(List.of(refreshToken));
+
+        // when
+        tokenService.revokeAllUserTokens(adminEntity);
+
+        // then
+        verify(refreshTokenRepository).saveAll(anyList());
+    }
 }
