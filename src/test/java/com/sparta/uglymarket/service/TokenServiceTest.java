@@ -157,4 +157,26 @@ class TokenServiceTest {
         // then
         verify(refreshTokenRepository).saveAll(anyList());
     }
+
+    @Test
+    void testRefreshToken() throws IOException {
+        // given
+        when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer refreshToken");
+        when(tokenUtil.getPhoneNumberFromToken(anyString())).thenReturn("01012345678");
+        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.of(adminEntity));
+        when(tokenUtil.validateToken(anyString())).thenReturn(true);
+        when(tokenUtil.generateAccessToken(anyString())).thenReturn("newAccessToken");
+
+        MockHttpServletResponse mockResponse = new MockHttpServletResponse();
+        mockResponse.setCharacterEncoding("UTF-8"); // Ensure the character encoding is set
+
+        // when
+        tokenService.refreshToken(request, mockResponse);
+
+        // then
+        assertEquals("Bearer newAccessToken", mockResponse.getHeader("Authorization"));
+        String responseContent = mockResponse.getContentAsString();
+        assertTrue(responseContent.contains("newAccessToken"));
+        assertTrue(responseContent.contains("refreshToken"));
+    }
 }
