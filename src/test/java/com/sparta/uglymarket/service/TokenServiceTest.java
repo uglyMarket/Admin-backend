@@ -206,4 +206,19 @@ class TokenServiceTest {
 
         assertEquals(ErrorMsg.UNAUTHORIZED_MEMBER.getDetails(), exception.getMessage());
     }
+
+    @Test
+    void testRefreshToken_InvalidAdmin() {
+        // given
+        when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer refreshToken");
+        when(tokenUtil.getPhoneNumberFromToken(anyString())).thenReturn("01012345678");
+        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.empty());
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            tokenService.refreshToken(request, response);
+        });
+
+        assertEquals(ErrorMsg.UNAUTHORIZED_MEMBER.getDetails(), exception.getMessage());
+    }
 }
