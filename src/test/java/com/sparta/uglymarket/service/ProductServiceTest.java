@@ -135,4 +135,17 @@ class ProductServiceTest {
 
         assertEquals(ErrorMsg.PRODUCT_NOT_FOUND.getDetails(), exception.getMessage());
     }
+
+    @Test
+    void testDeleteProduct() {
+        // given
+        when(productRepository.findById(anyLong())).thenReturn(Optional.of(productEntity));
+
+        // when
+        ProductDeleteResponse response = productService.deleteProduct(1L);
+
+        // then
+        assertEquals("상품이 성공적으로 삭제되었습니다.", response.getMessage());
+        verify(productRepository).delete(productEntity);
+    }
 }
