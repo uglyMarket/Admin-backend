@@ -55,26 +55,51 @@ public class TokenService {
     // 새로운 리프레시 토큰을 저장합니다.
     public void saveToken(AdminEntity admin, String refreshToken) {
         revokeAllUserTokens(admin); // 무효화 먼저 실행
-        RefreshToken refreshTokenEntity = RefreshToken.builder()
+        RefreshToken refreshTokenEntity = createRefreshTokenEntity(admin, refreshToken);
+        saveRefreshToken(refreshTokenEntity);
+    }
+
+    // 리프레시 토큰 엔티티 생성
+    private RefreshToken createRefreshTokenEntity(AdminEntity admin, String refreshToken) {
+        return RefreshToken.builder()
                 .token(refreshToken)
                 .tokenType(TokenType.REFRESH)
                 .expired(false)
                 .revoked(false)
                 .phoneNumber(admin.getPhoneNumber())
                 .build();
+    }
+
+    // 리프레시 토큰 엔티티 저장
+    private void saveRefreshToken(RefreshToken refreshTokenEntity) {
         refreshTokenRepository.save(refreshTokenEntity);
     }
 
     // 주어진 사용자의 모든 유효한 리프레시 토큰을 무효화합니다.
     public void revokeAllUserTokens(AdminEntity adminEntity) {
-        List<RefreshToken> validTokens = refreshTokenRepository.findAllValidTokenByPhoneNumber(adminEntity.getPhoneNumber());
+        List<RefreshToken> validTokens = fetchValidTokens(adminEntity.getPhoneNumber());
         if (!validTokens.isEmpty()) {
-            validTokens.forEach(t -> {
-                t.expire();
-                t.revoke();
-            });
-            refreshTokenRepository.saveAll(validTokens);
+            invalidateTokens(validTokens);
+            saveAllTokens(validTokens);
         }
+    }
+
+    // 유효한 토큰 조회
+    private List<RefreshToken> fetchValidTokens(String phoneNumber) {
+        return refreshTokenRepository.findAllValidTokenByPhoneNumber(phoneNumber);
+    }
+
+    // 토큰 무효화
+    private void invalidateTokens(List<RefreshToken> tokens) {
+        tokens.forEach(t -> {
+            t.expire();
+            t.revoke();
+        });
+    }
+
+    // 모든 토큰 저장
+    private void saveAllTokens(List<RefreshToken> tokens) {
+        refreshTokenRepository.saveAll(tokens);
     }
 
     // 리프레시 토큰을 사용하여 새로운 액세스 토큰을 발급합니다.
