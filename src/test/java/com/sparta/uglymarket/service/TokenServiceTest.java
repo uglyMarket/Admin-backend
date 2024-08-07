@@ -132,4 +132,16 @@ class TokenServiceTest {
         // then
         verify(tokenUtil).revokeToken("token");
     }
+
+    @Test
+    void testSaveToken() {
+        // given
+        when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(refreshToken);
+
+        // when
+        tokenService.saveToken(adminEntity, "refreshToken");
+
+        // then
+        verify(refreshTokenRepository).save(any(RefreshToken.class));
+    }
 }
