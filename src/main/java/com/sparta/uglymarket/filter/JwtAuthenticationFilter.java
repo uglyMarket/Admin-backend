@@ -64,7 +64,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Refresh Token을 사용하여 재인증 시도
                 String refreshToken = request.getHeader("Refresh-Token");
                 if (refreshToken != null && refreshToken.startsWith("Bearer ") && jwtUtil.validateToken(refreshToken.substring(7))) {
-                    jwtUtil.refreshToken(request, response);
+                    tokenService.refreshToken(request, response);
                 } else {
                     // Refresh Token도 만료된 경우
                     setResponse(response, HttpServletResponse.SC_UNAUTHORIZED, ErrorMsg.INVALID_TOKEN);
