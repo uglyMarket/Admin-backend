@@ -1,217 +1,192 @@
-//package com.sparta.uglymarket.service;
-//
-//import com.sparta.uglymarket.dto.*;
-//import com.sparta.uglymarket.entity.AdminEntity;
-//import com.sparta.uglymarket.entity.RefreshToken;
-//import com.sparta.uglymarket.entity.Role;
-//import com.sparta.uglymarket.exception.CustomException;
-//import com.sparta.uglymarket.exception.ErrorMsg;
-//import com.sparta.uglymarket.repository.AdminRepository;
-//import com.sparta.uglymarket.repository.RefreshTokenRepository;
-//import com.sparta.uglymarket.util.JwtUtil;
-//import com.sparta.uglymarket.util.PasswordUtil;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.mockito.InjectMocks;
-//import org.mockito.Mock;
-//import org.mockito.MockitoAnnotations;
-//import org.springframework.http.HttpStatus;
-//import org.springframework.http.ResponseEntity;
-//import java.util.Collections;
-//import java.util.Optional;
-//import static org.junit.jupiter.api.Assertions.*;
-//import static org.mockito.ArgumentMatchers.any;
-//import static org.mockito.ArgumentMatchers.anyString;
-//import static org.mockito.Mockito.*;
-//
-//class AdminServiceTest {
-//
-//    @InjectMocks
-//    private AdminService adminService;
-//
-//    @Mock
-//    private AdminRepository adminRepository;
-//
-//    @Mock
-//    private JwtUtil jwtUtil;
-//
-//    @Mock
-//    private RefreshTokenRepository refreshTokenRepository;
-//
-//    @Mock
-//    private PasswordUtil passwordUtil;
-//
-//    @BeforeEach
-//    void setUp() {
-//        MockitoAnnotations.openMocks(this);
-//    }
-//
-//    @Test
-//    void register() {
-//        // given
-//        AdminRegisterRequest request = mock(AdminRegisterRequest.class);
-//        when(request.getPhoneNumber()).thenReturn("010-1234-5678");
-//        when(request.getPassword()).thenReturn("password");
-//        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.empty());
-//        when(passwordUtil.encodePassword(anyString())).thenReturn("encodedPassword");
-//
-//        // when
-//        AdminRegisterResponse response = adminService.register(request);
-//
-//        // then
-//        assertEquals("회원가입 성공!", response.getMessage());
-//        assertEquals(Role.ROLE_ADMIN.name(), response.getRole());
-//        verify(adminRepository, times(1)).save(any(AdminEntity.class));
-//    }
-//
-//    @Test
-//    void register_throwsException_whenPhoneNumberExists() {
-//        // given
-//        AdminRegisterRequest request = mock(AdminRegisterRequest.class);
-//        when(request.getPhoneNumber()).thenReturn("010-1234-5678");
-//        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.of(new AdminEntity()));
-//
-//        // when & then
-//        CustomException exception = assertThrows(CustomException.class, () -> adminService.register(request));
-//        assertEquals(ErrorMsg.DUPLICATE_PHONE_NUMBER.getHttpStatus(), exception.getHttpStatus());
-//    }
-//
-//    @Test
-//    void login() {
-//        // given
-//        AdminLoginRequest request = mock(AdminLoginRequest.class);
-//        when(request.getPhoneNumber()).thenReturn("010-1234-5678");
-//        when(request.getPassword()).thenReturn("password");
-//
-//        AdminEntity admin = mock(AdminEntity.class);
-//        when(admin.getPhoneNumber()).thenReturn("010-1234-5678");
-//        when(admin.getPassword()).thenReturn("encodedPassword");
-//
-//        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.of(admin));
-//        when(passwordUtil.matches(anyString(), anyString())).thenReturn(true);
-//        when(jwtUtil.generateAccessToken(anyString())).thenReturn("accessToken");
-//        when(jwtUtil.generateRefreshToken(anyString())).thenReturn("refreshToken");
-//
-//        // when
-//        ResponseEntity<AdminLoginResponse> response = adminService.login(request);
-//
-//        // then
-//        assertEquals(HttpStatus.OK, response.getStatusCode());
-//        assertEquals("로그인 성공!", response.getBody().getMessage());
-//        assertTrue(response.getHeaders().containsKey("Authorization"));
-//        assertTrue(response.getHeaders().containsKey("Refresh-Token"));
-//    }
-//
-//    @Test
-//    void login_throwsException_whenPhoneNumberNotFound() {
-//        // given
-//        AdminLoginRequest request = mock(AdminLoginRequest.class);
-//        when(request.getPhoneNumber()).thenReturn("010-1234-5678");
-//        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.empty());
-//
-//        // when & then
-//        CustomException exception = assertThrows(CustomException.class, () -> adminService.login(request));
-//        assertEquals(ErrorMsg.PHONE_NUMBER_NOT_FOUND.getHttpStatus(), exception.getHttpStatus());
-//    }
-//
-//    @Test
-//    void login_throwsException_whenPasswordInvalid() {
-//        // given
-//        AdminLoginRequest request = mock(AdminLoginRequest.class);
-//        when(request.getPhoneNumber()).thenReturn("010-1234-5678");
-//        when(request.getPassword()).thenReturn("password");
-//
-//        AdminEntity admin = mock(AdminEntity.class);
-//        when(admin.getPhoneNumber()).thenReturn("010-1234-5678");
-//        when(admin.getPassword()).thenReturn("encodedPassword");
-//
-//        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.of(admin));
-//        when(passwordUtil.matches(anyString(), anyString())).thenReturn(false);
-//
-//        // when & then
-//        CustomException exception = assertThrows(CustomException.class, () -> adminService.login(request));
-//        assertEquals(ErrorMsg.INVALID_PASSWORD.getHttpStatus(), exception.getHttpStatus());
-//    }
-//
-//    @Test
-//    void updateAdmin() {
-//        // given
-//        Long id = 1L;
-//        AdminUpdateRequest request = mock(AdminUpdateRequest.class);
-//        when(request.getPhoneNumber()).thenReturn("010-1234-5678");
-//
-//        AdminEntity admin = mock(AdminEntity.class);
-//        when(admin.getPhoneNumber()).thenReturn("010-1234-5678");
-//        when(admin.getRole()).thenReturn(Role.ROLE_ADMIN);
-//
-//        when(adminRepository.findById(eq(id))).thenReturn(Optional.of(admin));
-//        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.empty());
-//
-//        // when
-//        AdminUpdateResponse response = adminService.updateAdmin(id, request);
-//
-//        // then
-//        assertEquals("회원 정보 수정 성공!", response.getMessage());
-//        assertEquals(Role.ROLE_ADMIN.name(), response.getRole());
-//        verify(adminRepository, times(1)).save(admin);
-//    }
-//
-//    @Test
-//    void updateAdmin_throwsException_whenAdminNotFound() {
-//        // given
-//        Long id = 1L;
-//        AdminUpdateRequest request = mock(AdminUpdateRequest.class);
-//        when(adminRepository.findById(eq(id))).thenReturn(Optional.empty());
-//
-//        // when & then
-//        CustomException exception = assertThrows(CustomException.class, () -> adminService.updateAdmin(id, request));
-//        assertEquals(ErrorMsg.ADMIN_NOT_FOUND.getHttpStatus(), exception.getHttpStatus());
-//    }
-//
-//    @Test
-//    void updateAdmin_throwsException_whenPhoneNumberExists() {
-//        // given
-//        Long id = 1L;
-//        AdminUpdateRequest request = mock(AdminUpdateRequest.class);
-//        when(request.getPhoneNumber()).thenReturn("010-1234-5678");
-//
-//        AdminEntity admin = mock(AdminEntity.class);
-//        when(admin.getPhoneNumber()).thenReturn("010-8765-4321");
-//
-//        when(adminRepository.findById(eq(id))).thenReturn(Optional.of(admin));
-//        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.of(new AdminEntity()));
-//
-//        // when & then
-//        CustomException exception = assertThrows(CustomException.class, () -> adminService.updateAdmin(id, request));
-//        assertEquals(ErrorMsg.DUPLICATE_PHONE_NUMBER.getHttpStatus(), exception.getHttpStatus());
-//    }
-//
-//    @Test
-//    void logout() {
-//        // given
-//        String token = "someToken";
-//        when(jwtUtil.getPhoneNumberFromToken(anyString())).thenReturn("010-1234-5678");
-//        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.of(new AdminEntity()));
-//        when(refreshTokenRepository.findByPhoneNumber(anyString())).thenReturn(Collections.singletonList(new RefreshToken()));
-//
-//        // when
-//        LogoutResponse response = adminService.logout(token);
-//
-//        // then
-//        assertEquals("로그아웃 성공!", response.getMessage());
-//        verify(jwtUtil, times(1)).revokeToken(eq(token));
-//        verify(jwtUtil, times(1)).revokeToken(anyString());
-//    }
-//
-//    @Test
-//    void logout_throwsException_whenPhoneNumberNotFound() {
-//        // given
-//        String token = "someToken";
-//        when(jwtUtil.getPhoneNumberFromToken(anyString())).thenReturn("010-1234-5678");
-//        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.empty());
-//
-//        // when & then
-//        CustomException exception = assertThrows(CustomException.class, () -> adminService.logout(token));
-//        assertEquals(ErrorMsg.PHONE_NUMBER_NOT_FOUND.getHttpStatus(), exception.getHttpStatus());
-//    }
-//}
+package com.sparta.uglymarket.service;
+
+import com.sparta.uglymarket.dto.*;
+import com.sparta.uglymarket.entity.AdminEntity;
+import com.sparta.uglymarket.entity.RefreshToken;
+import com.sparta.uglymarket.entity.Role;
+import com.sparta.uglymarket.exception.CustomException;
+import com.sparta.uglymarket.exception.ErrorMsg;
+import com.sparta.uglymarket.factory.AdminFactory;
+import com.sparta.uglymarket.repository.AdminRepository;
+import com.sparta.uglymarket.repository.RefreshTokenRepository;
+import com.sparta.uglymarket.util.PasswordUtil;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
+class AdminServiceTest {
+
+    @Mock
+    private AdminRepository adminRepository;
+
+    @Mock
+    private TokenService tokenService;
+
+    @Mock
+    private RefreshTokenRepository refreshTokenRepository;
+
+    @Mock
+    private PasswordUtil passwordUtil;
+
+    @Mock
+    private AdminFactory adminFactory;
+
+    @InjectMocks
+    private AdminService adminService;
+
+    private AdminRegisterRequest adminRegisterRequest;
+    private AdminLoginRequest adminLoginRequest;
+    private AdminUpdateRequest adminUpdateRequest;
+    private AdminEntity adminEntity;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+
+        adminRegisterRequest = mock(AdminRegisterRequest.class);
+        adminLoginRequest = mock(AdminLoginRequest.class);
+        adminUpdateRequest = mock(AdminUpdateRequest.class);
+
+        adminEntity = new AdminEntity(
+                1L, "01012345678", "encodedPassword",
+                Role.ROLE_ADMIN, "farmName",
+                "introMessage", "profileImageUrl",
+                "leaderName", "businessId",
+                "openingDate", 10000L);
+
+        when(adminFactory.createAdmin(any())).thenReturn(adminEntity);
+        when(passwordUtil.encodePassword(anyString())).thenReturn("encodedPassword");
+    }
+
+    @Test
+    void testRegister() {
+        // given
+        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.empty());
+        when(adminFactory.createAdmin(adminRegisterRequest)).thenReturn(adminEntity);
+        when(passwordUtil.encodePassword(anyString())).thenReturn("encodedPassword");
+
+        // when
+        AdminRegisterResponse response = adminService.register(adminRegisterRequest);
+
+        // then
+        verify(adminRepository).save(adminEntity);
+        assertEquals("회원가입 성공!", response.getMessage());
+    }
+
+
+    @Test
+    void testRegister_ThrowsException() {
+        // given
+        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.of(adminEntity));
+        when(adminRegisterRequest.getPhoneNumber()).thenReturn("01012345678");
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            adminService.register(adminRegisterRequest);
+        });
+
+        assertEquals(ErrorMsg.DUPLICATE_PHONE_NUMBER.getDetails(), exception.getMessage());
+    }
+
+    @Test
+    void testAuthenticateUser_ThrowsException() {
+        // given
+        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.empty());
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            adminService.login(adminLoginRequest);
+        });
+
+        assertEquals(ErrorMsg.PHONE_NUMBER_NOT_FOUND.getDetails(), exception.getMessage());
+    }
+
+    @Test
+    void testUpdateAdmin() {
+        // given
+        when(adminRepository.findById(anyLong())).thenReturn(Optional.of(adminEntity));
+        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.of(adminEntity));
+
+        // when
+        AdminUpdateResponse response = adminService.updateAdmin(1L, adminUpdateRequest);
+
+        // then
+        verify(adminRepository).save(adminEntity);
+        assertEquals("회원 정보 수정 성공!", response.getMessage());
+    }
+
+    @Test
+    void testUpdateAdmin_ThrowsException() {
+        // given
+        when(adminRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            adminService.updateAdmin(1L, adminUpdateRequest);
+        });
+
+        assertEquals(ErrorMsg.ADMIN_NOT_FOUND.getDetails(), exception.getMessage());
+    }
+
+    @Test
+    void testLogout() {
+        // given
+        String token = "testToken";
+        when(tokenService.getPhoneNumberFromToken(token)).thenReturn("01012345678");
+        when(adminRepository.findByPhoneNumber("01012345678")).thenReturn(Optional.of(adminEntity));
+        when(refreshTokenRepository.findByPhoneNumber("01012345678")).thenReturn(List.of(new RefreshToken()));
+
+        // when
+        LogoutResponse response = adminService.logout(token);
+
+        // then
+        assertEquals("로그아웃 성공!", response.getMessage());
+        verify(tokenService).revokeToken(token);
+    }
+
+    @Test
+    void testLogout_ThrowsException() {
+        // given
+        String token = "testToken";
+        when(tokenService.getPhoneNumberFromToken(token)).thenReturn("01012345678");
+        when(adminRepository.findByPhoneNumber("01012345678")).thenReturn(Optional.empty());
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            adminService.logout(token);
+        });
+
+        assertEquals(ErrorMsg.PHONE_NUMBER_NOT_FOUND.getDetails(), exception.getMessage());
+    }
+    @Test
+    void testLogin() {
+        // given
+        when(adminLoginRequest.getPhoneNumber()).thenReturn("01012345678");
+        when(adminLoginRequest.getPassword()).thenReturn("password");
+        when(adminRepository.findByPhoneNumber(anyString())).thenReturn(Optional.of(adminEntity));
+        when(passwordUtil.matches(anyString(), anyString())).thenReturn(true);
+        when(tokenService.generateAccessToken(anyString())).thenReturn("accessToken");
+        when(tokenService.generateRefreshToken(anyString())).thenReturn("refreshToken");
+
+        // when
+        ResponseEntity<AdminLoginResponse> response = adminService.login(adminLoginRequest);
+
+        // then
+        assertEquals("로그인 성공!", response.getBody().getMessage());
+        assertEquals("Bearer accessToken", response.getHeaders().getFirst("Authorization"));
+        assertEquals("Bearer refreshToken", response.getHeaders().getFirst("Refresh-Token"));
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+}
