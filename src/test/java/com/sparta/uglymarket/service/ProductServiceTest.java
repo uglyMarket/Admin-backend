@@ -122,4 +122,17 @@ class ProductServiceTest {
         assertEquals("상품 조회 성공", response.getMessage());
         assertEquals(productEntity, response.getProduct());
     }
+
+    @Test
+    void testGetProductResponse_ThrowsException() {
+        // given
+        when(productRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            productService.getProductResponse(1L);
+        });
+
+        assertEquals(ErrorMsg.PRODUCT_NOT_FOUND.getDetails(), exception.getMessage());
+    }
 }
