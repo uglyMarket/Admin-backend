@@ -1,7 +1,10 @@
 package com.sparta.uglymarket.util;
 
+import com.sparta.uglymarket.entity.RefreshToken;
+import com.sparta.uglymarket.exception.CustomException;
+import com.sparta.uglymarket.exception.ErrorMsg;
 import com.sparta.uglymarket.repository.RefreshTokenRepository;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -10,9 +13,10 @@ import org.mockito.MockitoAnnotations;
 
 import java.lang.reflect.Field;
 import java.security.Key;
+import java.util.Date;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class JwtUtilTest {
 
@@ -60,6 +64,19 @@ class JwtUtilTest {
         // then
         assertNotNull(token);
         String extractedPhoneNumber = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getSubject();
+        assertEquals(phoneNumber, extractedPhoneNumber);
+    }
+
+    @Test
+    void testGetPhoneNumberFromToken() {
+        // given
+        String phoneNumber = "01012345678";
+        String token = jwtUtil.generateAccessToken(phoneNumber);
+
+        // when
+        String extractedPhoneNumber = jwtUtil.getPhoneNumberFromToken(token);
+
+        // then
         assertEquals(phoneNumber, extractedPhoneNumber);
     }
 }
