@@ -48,4 +48,5 @@ Desktop.ini
 $RECYCLE.BIN/
 
 ### Application Properties ###
-application.properties
+# Ignore application.properties
+# application.properties
