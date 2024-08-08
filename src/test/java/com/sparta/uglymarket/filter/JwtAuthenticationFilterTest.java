@@ -223,4 +223,24 @@ public class JwtAuthenticationFilterTest {
         // then
         verify(tokenService).refreshToken(request, response);
     }
+
+    @Test
+    void testHandleInvalidToken() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, ServletException, IOException {
+        // given
+        Method method = JwtAuthenticationFilter.class.getDeclaredMethod("handleInvalidToken", HttpServletRequest.class, HttpServletResponse.class, String.class);
+        method.setAccessible(true);
+        String invalidToken = "invalidToken";
+        request.addHeader("Authorization", "Bearer " + invalidToken);
+        when(jwtUtil.validateToken(invalidToken)).thenReturn(false);
+        when(jwtUtil.getPhoneNumberFromToken(invalidToken)).thenReturn(null);
+
+        // when
+        method.invoke(jwtAuthenticationFilter, request, response, invalidToken);
+
+        // then
+        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.getStatus());
+        assertEquals("application/json;charset=UTF-8", response.getContentType());
+        assertEquals("UTF-8", response.getCharacterEncoding());
+        assertTrue(response.getContentAsString().contains(ErrorMsg.INVALID_TOKEN.getDetails()));
+    }
 }
