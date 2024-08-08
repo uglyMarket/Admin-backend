@@ -207,4 +207,20 @@ public class JwtAuthenticationFilterTest {
         assertTrue(result1);
         assertFalse(result2);
     }
+
+    @Test
+    void testTryRefreshToken() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, IOException {
+        // given
+        Method method = JwtAuthenticationFilter.class.getDeclaredMethod("tryRefreshToken", HttpServletRequest.class, HttpServletResponse.class);
+        method.setAccessible(true);
+        String refreshToken = "validRefreshToken";
+        request.addHeader("Refresh-Token", "Bearer " + refreshToken);
+        when(jwtUtil.validateToken(refreshToken)).thenReturn(true);
+
+        // when
+        method.invoke(jwtAuthenticationFilter, request, response);
+
+        // then
+        verify(tokenService).refreshToken(request, response);
+    }
 }
