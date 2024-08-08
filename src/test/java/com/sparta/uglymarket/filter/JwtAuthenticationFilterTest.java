@@ -16,9 +16,10 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class JwtAuthenticationFilterTest {
@@ -152,5 +153,22 @@ public class JwtAuthenticationFilterTest {
 
         // then
         verify(filterChain).doFilter(request, response);
+    }
+
+    @Test
+    void testShouldSkipFilter() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        // given
+        Method method = JwtAuthenticationFilter.class.getDeclaredMethod("shouldSkipFilter", String.class);
+        method.setAccessible(true);
+
+        // when
+        boolean result1 = (boolean) method.invoke(jwtAuthenticationFilter, "/api/admin/login");
+        boolean result2 = (boolean) method.invoke(jwtAuthenticationFilter, "/api/admin/register");
+        boolean result3 = (boolean) method.invoke(jwtAuthenticationFilter, "/api/some/other/path");
+
+        // then
+        assertTrue(result1);
+        assertTrue(result2);
+        assertFalse(result3);
     }
 }
