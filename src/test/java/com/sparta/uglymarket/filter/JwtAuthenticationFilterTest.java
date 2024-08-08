@@ -171,4 +171,21 @@ public class JwtAuthenticationFilterTest {
         assertTrue(result2);
         assertFalse(result3);
     }
+
+    @Test
+    void testExtractToken() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        // given
+        Method method = JwtAuthenticationFilter.class.getDeclaredMethod("extractToken", String.class);
+        method.setAccessible(true);
+
+        // when
+        String result1 = (String) method.invoke(jwtAuthenticationFilter, "Bearer validToken");
+        String result2 = (String) method.invoke(jwtAuthenticationFilter, (String) null);
+        String result3 = (String) method.invoke(jwtAuthenticationFilter, "InvalidToken");
+
+        // then
+        assertEquals("validToken", result1);
+        assertNull(result2);
+        assertNull(result3);
+    }
 }
