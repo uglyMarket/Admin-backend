@@ -8,5 +8,4 @@ import java.util.Optional;
 @Repository
 public interface AdminRepository extends JpaRepository<AdminEntity, Long> {
     Optional<AdminEntity> findByPhoneNumber(String phoneNumber);
-    Optional<AdminEntity> findByFarmName(String farmName);
 }

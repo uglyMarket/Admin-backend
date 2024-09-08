@@ -1,6 +1,9 @@
 package com.sparta.uglymarket.filter;
 
+import com.sparta.uglymarket.entity.AdminEntity;
+import com.sparta.uglymarket.entity.Role;
 import com.sparta.uglymarket.exception.ErrorMsg;
+import com.sparta.uglymarket.repository.AdminRepository;
 import com.sparta.uglymarket.service.TokenService;
 import com.sparta.uglymarket.util.JwtUtil;
 import jakarta.servlet.FilterChain;
@@ -9,15 +12,22 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final AdminRepository adminRepository;
     private final TokenService tokenService;
+
 
     // 필터의 주요 로직을 처리합니다.
     @Override
@@ -33,19 +43,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         // Authorization 헤더에서 JWT 토큰 추출
-        String header = request.getHeader("Authorization");
+        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
         String token = extractToken(header);
 
         // 토큰이 없으면 400 응답
         if (token == null) {
-            setResponse(response, HttpServletResponse.SC_BAD_REQUEST, ErrorMsg.MISSING_AUTHORIZATION_HEADER);
+            setResponse(response, ErrorMsg.MISSING_AUTHORIZATION_HEADER);
             return;
         }
 
-        // 토큰이 유효하면 이메일을 요청에 첨부
+        // 토큰이 유효하고 Admin 엔티티의 전화번호와 일치하는지 확인
         if (isValidToken(token)) {
-            String email = jwtUtil.getPhoneNumberFromToken(token);
-            request.setAttribute("email", email);
+            String phoneNumber = jwtUtil.getPhoneNumberFromToken(token);
+
+            // Admin 엔티티에서 해당 전화번호로 사용자 조회
+            Optional<AdminEntity> adminOptional = adminRepository.findByPhoneNumber(phoneNumber);
+            if (adminOptional.isPresent()) {
+                request.setAttribute("admin", adminOptional.get());
+            } else {
+                // 일치하는 Admin이 없으면 404 응답
+                setResponse(response, ErrorMsg.PHONE_NUMBER_NOT_FOUND);
+                return;
+            }
         } else {
             // 토큰이 유효하지 않으면 처리
             handleInvalidToken(request, response, token);
@@ -55,6 +74,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 다음 필터 또는 서블릿으로 요청을 전달
         chain.doFilter(request, response);
     }
+
 
     // 로그인 및 회원가입 경로를 필터링에서 제외
     private boolean shouldSkipFilter(String path) {
@@ -71,8 +91,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     // 토큰이 유효한지 확인
     private boolean isValidToken(String token) {
-        String email = jwtUtil.getPhoneNumberFromToken(token);
-        return email != null && jwtUtil.validateToken(token);
+        String phoneNumber = jwtUtil.getPhoneNumberFromToken(token);
+        return phoneNumber != null && jwtUtil.validateToken(token);
     }
 
     // 유효하지 않은 토큰 처리
@@ -99,14 +119,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     // 401 Unauthorized 응답 설정
     private void setUnauthorizedResponse(HttpServletResponse response, ErrorMsg errorMsg) throws IOException {
-        setResponse(response, HttpServletResponse.SC_UNAUTHORIZED, errorMsg);
+        setResponse(response, errorMsg);
     }
 
-    // 응답 설정
-    private void setResponse(HttpServletResponse response, int status, ErrorMsg errorMsg) throws IOException {
-        response.setStatus(status);
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+    // 응답 설정 (ErrorMsg 기반)
+    private void setResponse(HttpServletResponse response, ErrorMsg errorMsg) throws IOException {
+        response.setStatus(errorMsg.getHttpStatus().value());  // 에러 메시지에 맞는 HTTP 상태 코드 설정
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+
+        // JSON 형태로 응답
         response.getWriter().write(String.format("{\"message\": \"%s\"}", errorMsg.getDetails()));
     }
 }
