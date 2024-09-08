@@ -1,9 +1,12 @@
 package com.sparta.uglymarket.repository;
 
 import com.sparta.uglymarket.entity.ProductEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import java.util.List;
+import java.util.Optional;
 
-@Repository
-public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
+public interface ProductRepository {
+    Optional<ProductEntity> findById(Long id);
+    List<ProductEntity> findAll();
+    ProductEntity save(ProductEntity productEntity);
+    void delete(ProductEntity productEntity);
 }
