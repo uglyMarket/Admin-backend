@@ -10,3 +10,4 @@ public interface ProductRepository {
     ProductEntity save(ProductEntity productEntity);
     void delete(ProductEntity productEntity);
 }
+

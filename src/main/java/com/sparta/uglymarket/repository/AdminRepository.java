@@ -1,11 +1,12 @@
+// AdminRepository 인터페이스로 추상화
 package com.sparta.uglymarket.repository;
 
 import com.sparta.uglymarket.entity.AdminEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+
 import java.util.Optional;
 
-@Repository
-public interface AdminRepository extends JpaRepository<AdminEntity, Long> {
+public interface AdminRepository {
     Optional<AdminEntity> findByPhoneNumber(String phoneNumber);
+    AdminEntity save(AdminEntity adminEntity);
+    Optional<AdminEntity> findById(Long id);
 }
