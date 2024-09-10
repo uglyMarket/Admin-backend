@@ -1,10 +1,9 @@
 package com.sparta.uglymarket.controller;
 
 import com.sparta.uglymarket.dto.*;
-import com.sparta.uglymarket.service.ProductCreateService;
-import com.sparta.uglymarket.service.ProductUpdateService;
-import com.sparta.uglymarket.service.ProductGetService;
 import com.sparta.uglymarket.service.ProductDeleteService;
+import com.sparta.uglymarket.service.ProductGetService;
+import com.sparta.uglymarket.service.ProductUpdateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,17 +17,17 @@ import java.util.List;
 public class ProductController {
 
     // 분리된 서비스 의존성 주입
-    private final ProductCreateService productCreateService;
+//    private final ProductCreateService productCreateService;
     private final ProductUpdateService productUpdateService;
     private final ProductGetService productGetService;
     private final ProductDeleteService productDeleteService;
 
-    // 상품 생성
-    @PostMapping
-    public ResponseEntity<ProductCreateResponse> createProduct(@RequestBody ProductCreateRequest productCreateRequest) {
-        ProductCreateResponse productCreateResponse = productCreateService.createProduct(productCreateRequest);
-        return new ResponseEntity<>(productCreateResponse, HttpStatus.CREATED);
-    }
+//    // 상품 생성
+//    @PostMapping
+//    public ResponseEntity<ProductCreateResponse> createProduct(@RequestBody ProductCreateRequest productCreateRequest) {
+//        ProductCreateResponse productCreateResponse = productCreateService.createProduct(productCreateRequest);
+//        return new ResponseEntity<>(productCreateResponse, HttpStatus.CREATED);
+//    }
 
     // 상품 업데이트
     @PutMapping("/{id}")

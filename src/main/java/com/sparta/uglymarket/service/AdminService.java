@@ -1,133 +1,84 @@
 package com.sparta.uglymarket.service;
 
-import com.sparta.uglymarket.dto.*;
+import com.sparta.uglymarket.domain.AdminDomain;
+import com.sparta.uglymarket.dto.AdminResponseDto;
 import com.sparta.uglymarket.entity.AdminEntity;
-import com.sparta.uglymarket.entity.RefreshToken;
-import com.sparta.uglymarket.entity.Role;
-import com.sparta.uglymarket.exception.CustomException;
-import com.sparta.uglymarket.exception.ErrorMsg;
-import com.sparta.uglymarket.factory.AdminFactory;
+import com.sparta.uglymarket.mapper.AdminMapper;
 import com.sparta.uglymarket.repository.AdminRepository;
-import com.sparta.uglymarket.repository.RefreshTokenRepository;
+import com.sparta.uglymarket.util.JwtUtil;
 import com.sparta.uglymarket.util.PasswordUtil;
-import lombok.AllArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-@AllArgsConstructor
+import java.util.Optional;
+
 @Service
+@RequiredArgsConstructor
 public class AdminService {
 
     private final AdminRepository adminRepository;
-    private final TokenService tokenService;
-    private final RefreshTokenRepository refreshTokenRepository;
+    private final AdminMapper adminMapper;
     private final PasswordUtil passwordUtil;
-    private final AdminFactory adminFactory;
+    private final JwtUtil jwtUtil;
 
-    // 회원 가입
-    public AdminRegisterResponse register(AdminRegisterRequest adminRegisterRequest) {
-        checkForDuplicatePhoneNumber(adminRegisterRequest.getPhoneNumber());
-        AdminEntity adminEntity = createAdminEntity(adminRegisterRequest);
-        adminRepository.save(adminEntity);
-        return new AdminRegisterResponse("회원가입 성공!", adminEntity.getRole().name());
+    // 관리자 등록
+    public AdminDomain register(AdminDomain adminDomain) {
+        // 비밀번호 암호화 등 핵심 비즈니스 로직
+        adminDomain.encryptPassword(passwordUtil);
+        // 도메인 정보로 엔티티 변환 후 저장
+        AdminEntity adminEntity = adminMapper.toEntity(adminDomain);
+        AdminEntity savedAdmin = adminRepository.save(adminEntity);
+        return adminMapper.toDomain(savedAdmin);
     }
 
-    // 관리자 로그인 메서드
-    public ResponseEntity<AdminLoginResponse> login(AdminLoginRequest adminLoginRequest) {
-        AdminEntity admin = authenticateUser(adminLoginRequest);
-        String token = tokenService.generateAccessToken(admin.getPhoneNumber());
-        String refreshToken = tokenService.generateRefreshToken(admin.getPhoneNumber());
-        tokenService.saveToken(admin, refreshToken);
-        HttpHeaders headers = createHeaders(token, refreshToken);
-
-        AdminLoginResponse responseDto = new AdminLoginResponse("로그인 성공!");
-        return new ResponseEntity<>(responseDto, headers, HttpStatus.OK);
-    }
-
-    // 회원 정보 수정
-    public AdminUpdateResponse updateAdmin(Long id, AdminUpdateRequest adminUpdateRequest) {
-        AdminEntity admin = findAdminById(id);
-        checkForDuplicatePhoneNumberIfChanged(admin, adminUpdateRequest.getPhoneNumber());
-        updateAdminEntity(admin, adminUpdateRequest);
-        return new AdminUpdateResponse("회원 정보 수정 성공!", admin.getRole().name());
-    }
-
-    // 로그아웃
-    public LogoutResponse logout(String token) {
-        String phoneNumber = tokenService.getPhoneNumberFromToken(token);
-        validatePhoneNumber(phoneNumber);
-        invalidateTokens(phoneNumber, token);
-        return new LogoutResponse("로그아웃 성공!");
-    }
-
-    // 전화번호 유효성 검사
-    private void validatePhoneNumber(String phoneNumber) {
-        adminRepository.findByPhoneNumber(phoneNumber)
-                .orElseThrow(() -> new CustomException(ErrorMsg.PHONE_NUMBER_NOT_FOUND));
-    }
-
-    // 전화번호 중복 체크
-    private void checkForDuplicatePhoneNumber(String phoneNumber) {
-        if (adminRepository.findByPhoneNumber(phoneNumber).isPresent()) {
-            throw new CustomException(ErrorMsg.DUPLICATE_PHONE_NUMBER);
-        }
-    }
-
-    // AdminRegisterRequest를 AdminEntity로 변환하고 비밀번호를 암호화하여 엔티티 생성
-    private AdminEntity createAdminEntity(AdminRegisterRequest adminRegisterRequest) {
-        AdminEntity adminEntity = adminFactory.createAdmin(adminRegisterRequest);
-        String encodedPassword = passwordUtil.encodePassword(adminRegisterRequest.getPassword());
-        adminEntity.setPassword(encodedPassword);
-        return adminEntity;
-    }
-
-    // 사용자 인증 메서드
-    private AdminEntity authenticateUser(AdminLoginRequest adminLoginRequest) {
-        AdminEntity admin = adminRepository.findByPhoneNumber(adminLoginRequest.getPhoneNumber())
-                .orElseThrow(() -> new CustomException(ErrorMsg.PHONE_NUMBER_NOT_FOUND));
-        if (!passwordUtil.matches(adminLoginRequest.getPassword(), admin.getPassword())) {
-            throw new CustomException(ErrorMsg.INVALID_PASSWORD);
-        }
-        return admin;
-    }
-
-    // 헤더 생성 메서드
-    private HttpHeaders createHeaders(String token, String refreshToken) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + token);
-        headers.add("Refresh-Token", "Bearer " + refreshToken);
-        return headers;
-    }
-
-    // ID로 관리자 엔티티를 찾고, 없으면 예외 발생
-    private AdminEntity findAdminById(Long id) {
+    // 관리자 조회
+    public Optional<AdminDomain> findAdminById(Long id) {
         return adminRepository.findById(id)
-                .orElseThrow(() -> new CustomException(ErrorMsg.ADMIN_NOT_FOUND));
+                .map(adminMapper::toDomain);  // Entity를 Domain으로 변환
     }
 
-    // 전화번호가 변경된 경우 중복 체크
-    private void checkForDuplicatePhoneNumberIfChanged(AdminEntity admin, String newPhoneNumber) {
-        if (!admin.getPhoneNumber().equals(newPhoneNumber) &&
-                adminRepository.findByPhoneNumber(newPhoneNumber).isPresent()) {
-            throw new CustomException(ErrorMsg.DUPLICATE_PHONE_NUMBER);
+
+    // 로그인 로직 처리 및 JWT 발급
+    public AdminResponseDto login(AdminDomain adminDomain) {
+        // 전화번호로 관리자 조회
+        AdminEntity adminEntity = adminRepository.findByPhoneNumber(adminDomain.getPhoneNumber())
+                .orElseThrow(() -> new IllegalArgumentException("해당 관리자가 존재하지 않습니다."));
+
+        // 비밀번호 검증 (핵심 비즈니스 로직)
+        if (!passwordUtil.matches(adminDomain.getPassword(), adminEntity.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 올바르지 않습니다.");
         }
+
+        // JWT 토큰 발급
+        String accessToken = jwtUtil.generateAccessToken(adminEntity.getPhoneNumber());
+        String refreshToken = jwtUtil.generateRefreshToken(adminEntity.getPhoneNumber());
+
+        // Domain -> Response DTO 변환 및 토큰 추가
+        AdminResponseDto responseDto = adminMapper.domainToResponseDto(adminMapper.toDomain(adminEntity));
+        responseDto.setAccessToken(accessToken);
+        responseDto.setRefreshToken(refreshToken);
+
+        return responseDto;
     }
 
-    // 관리자 엔티티 업데이트
-    private void updateAdminEntity(AdminEntity admin, AdminUpdateRequest adminUpdateRequest) {
-        admin.update(adminUpdateRequest);
-        adminRepository.save(admin);
-    }
+    // 관리자 정보 수정
+    public AdminDomain updateAdmin(Long id, AdminDomain adminDomain) {
+        AdminEntity existingAdminEntity = adminRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 관리자가 존재하지 않습니다."));
 
-    // 토큰 무효화
-    private void invalidateTokens(String phoneNumber, String token) {
-        // 액세스 토큰 무효화
-        tokenService.revokeToken(token);
-        // 모든 리프레시 토큰 무효화
-        List<RefreshToken> refreshTokens = refreshTokenRepository.findByPhoneNumber(phoneNumber);
-        refreshTokens.forEach(refreshToken -> tokenService.revokeToken(refreshToken.getToken()));
+        // 기존 엔티티에서 도메인으로 변환하여 업데이트 정보 반영
+        AdminDomain existingAdminDomain = adminMapper.toDomain(existingAdminEntity);
+
+        // 정보 업데이트 (핵심 비즈니스 로직은 서비스 레이어에서 처리)
+        existingAdminDomain.updateAdminInfo(
+                adminDomain.getPassword(),
+                adminDomain.getNickName(),
+                adminDomain.getPhoneNumber(),
+                passwordUtil
+        );
+
+        // 엔티티로 변환 후 저장
+        AdminEntity updatedAdminEntity = adminRepository.save(adminMapper.toEntity(existingAdminDomain));
+        return adminMapper.toDomain(updatedAdminEntity);
     }
 }
