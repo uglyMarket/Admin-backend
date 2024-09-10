@@ -1,17 +1,16 @@
 package com.sparta.uglymarket.dto;
 
-import com.sparta.uglymarket.entity.ProductEntity;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor
+@AllArgsConstructor
 public class ProductGetResponse {
-    private String message;
-    private ProductEntity product;
-
-    public ProductGetResponse(String message, ProductEntity product) {
-        this.message = message;
-        this.product = product;
-    }
+    private Long id;
+    private String title;
+    private String content;
+    private Long price;
+    private Long stock;
+    private String imageUrl;
+    private String category;
 }

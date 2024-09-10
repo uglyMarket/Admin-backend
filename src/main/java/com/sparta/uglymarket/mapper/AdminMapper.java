@@ -75,14 +75,4 @@ public class AdminMapper {
                 domain.getRole()
         );
     }
-
-    // AdminDomain -> AdminResponseDto 변환 (role 필요 없는 경우)
-    public AdminResponseDto domainToResponseDto(String message) {
-        return new AdminResponseDto(message);
-    }
-
-    // AdminDomain -> AdminResponseDto 변환 (role 포함)
-    public AdminResponseDto domainToResponseDto(String message, String role) {
-        return new AdminResponseDto(message, role);
-    }
 }

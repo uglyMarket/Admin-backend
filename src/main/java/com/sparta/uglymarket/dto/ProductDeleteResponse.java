@@ -1,14 +1,10 @@
 package com.sparta.uglymarket.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor
+@AllArgsConstructor
 public class ProductDeleteResponse {
-    private String message;
-
-    public ProductDeleteResponse(String message) {
-        this.message = message;
-    }
+    private String message;  // 삭제 성공 메시지
 }

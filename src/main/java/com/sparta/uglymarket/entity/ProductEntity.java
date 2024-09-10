@@ -1,6 +1,5 @@
 package com.sparta.uglymarket.entity;
 
-import com.sparta.uglymarket.dto.ProductUpdateRequest;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,32 +14,54 @@ public class ProductEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // 상품 ID
+    private Long id;
 
     @Column(nullable = false)
-    private String title; // 상품 제목
+    private String title;
 
     @Column(nullable = false)
-    private String content; // 상품 내용
+    private String content;
 
     @Column(nullable = false)
-    private Long price; // 상품 가격
+    private Long price;
 
     @Column(nullable = false)
-    private Long stock; // 재고량
+    private Long stock;
 
     @Column(nullable = false)
-    private String imageUrl; // 상품 이미지 URL
+    private String imageUrl;
 
     @Column(nullable = false)
-    private String category; // 상품 카테고리
+    private String category;
 
-    public void updateFromRequest(ProductUpdateRequest productUpdateRequest) {
-        this.title = productUpdateRequest.getTitle();
-        this.content = productUpdateRequest.getContent();
-        this.price = productUpdateRequest.getPrice();
-        this.stock = productUpdateRequest.getStock();
-        this.imageUrl = productUpdateRequest.getImageUrl();
-        this.category = productUpdateRequest.getCategory();
+    // 필드 업데이트 메서드들 (Setter 대신 명시적 메서드)
+    public ProductEntity changeTitle(String title) {
+        this.title = title;
+        return this;
+    }
+
+    public ProductEntity changeContent(String content) {
+        this.content = content;
+        return this;
+    }
+
+    public ProductEntity changePrice(Long price) {
+        this.price = price;
+        return this;
+    }
+
+    public ProductEntity changeStock(Long stock) {
+        this.stock = stock;
+        return this;
+    }
+
+    public ProductEntity changeImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+        return this;
+    }
+
+    public ProductEntity changeCategory(String category) {
+        this.category = category;
+        return this;
     }
 }
