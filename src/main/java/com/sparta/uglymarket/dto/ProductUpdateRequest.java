@@ -1,15 +1,32 @@
 package com.sparta.uglymarket.dto;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
-@NoArgsConstructor
+@Setter
 public class ProductUpdateRequest {
-    private String title; // 상품 제목
-    private String content; // 상품 내용
-    private Long price; // 상품 가격
-    private Long stock; // 재고량
-    private String imageUrl; // 상품 이미지 URL
-    private String category; // 상품 카테고리
+
+    @NotBlank(message = "상품 제목은 필수 항목입니다.")
+    private String title;
+
+    @NotBlank(message = "상품 내용은 필수 항목입니다.")
+    private String content;
+
+    @NotNull(message = "가격은 필수 항목입니다.")
+    @Min(value = 1, message = "가격은 1원 이상이어야 합니다.")
+    private Long price;
+
+    @NotNull(message = "재고는 필수 항목입니다.")
+    @Min(value = 0, message = "재고는 0 이상이어야 합니다.")
+    private Long stock;
+
+    @NotBlank(message = "상품 이미지는 필수 항목입니다.")
+    private String imageUrl;
+
+    @NotBlank(message = "카테고리는 필수 항목입니다.")
+    private String category;
 }
